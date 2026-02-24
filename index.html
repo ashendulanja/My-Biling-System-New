@@ -9,7 +9,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
+        /* ඔයාගේ පරණ CSS ටිකමයි මෙතන තියෙන්නේ. වෙනසක් කරලා නෑ */
         :root {
             --primary: #0f172a;       
             --secondary: #3b82f6;     
@@ -175,18 +179,15 @@
         .modal-btn-confirm { background: var(--secondary); color: white; }
         .modal-btn-danger { background: #ef4444; color: white; }
 
-        /* --- අලුතින් එකතු කල MOBILE VIEW CSS (මේකෙන් තමයි Mobile එකේ layout එක හදන්නේ) --- */
         @media screen and (max-width: 850px) {
             body { padding: 10px; }
             .app-container { flex-direction: column; gap: 15px; }
             .controls { flex: none; width: 100%; position: relative; max-height: none; overflow: visible; }
             .profile-header { flex-direction: column; align-items: stretch; }
             
-            /* Tabs scrollable in mobile */
             .tabs { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
             .tab-btn { flex: 0 0 auto; padding: 12px 20px; }
             
-            /* Stack form inputs vertically */
             .control-group > div[style*="display: flex"] { flex-direction: column !important; }
             .control-group > div[style*="display: flex"] > div,
             .control-group > div[style*="display: flex"] > input,
@@ -195,12 +196,10 @@
             .color-row { flex-direction: column; gap: 15px; }
             .btn-print { margin: 15px; width: calc(100% - 30px); }
             
-            /* Preserve A4 Invoice Layout by allowing horizontal scroll */
             .preview { width: 100%; overflow-x: auto; min-height: auto; border: 1px solid var(--border); border-radius: 12px; }
             .top-accent { min-width: 794px; }
             .preview-content { min-width: 794px; }
             
-            /* History card fixes */
             .hist-card { flex-direction: column; align-items: flex-start; gap: 10px; }
             .hist-meta { display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; text-align: left; }
             .hist-meta > div { margin-top: 0 !important; }
@@ -241,11 +240,9 @@
 <body>
 
 <div class="app-container">
-    
     <div class="controls">
         <div class="profile-header">
-            <select id="profileSelect" onchange="loadProfile()">
-                </select>
+            <select id="profileSelect" onchange="loadProfile()"></select>
             <button class="btn-save-profile" onclick="saveProfile()" title="Save current settings to this profile">💾 Save Settings</button>
         </div>
 
@@ -282,7 +279,6 @@
 
             <div class="control-group item-entry-box" id="itemInputBox">
                 <h3 style="color: var(--primary);" id="itemEntryTitle">Add Item</h3>
-                
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                     <input type="text" id="itemName" list="itemDatalist" placeholder="Search or Type Item Name" style="flex: 2; margin-bottom: 0;" oninput="autoFillItem()">
                     <datalist id="itemDatalist"></datalist>
@@ -298,9 +294,7 @@
                     </select>
                 </div>
                 <input type="text" id="itemWarrantyCustom" placeholder="Type custom warranty here..." style="display: none; margin-bottom: 10px;">
-                
                 <textarea id="itemDesc" placeholder="Description / Serial No..."></textarea>
-                
                 <div style="display: flex; gap: 10px;">
                     <div style="flex: 1.5;"><label>Price (LKR)</label><input type="number" id="itemPrice" placeholder="0.00"></div>
                     <div style="flex: 1.5;"><label>Unit Discount</label><input type="number" id="itemDiscount" placeholder="0.00"></div>
@@ -311,11 +305,9 @@
 
             <div class="control-group" style="border:none;">
                 <h3>Extra Information</h3>
-                
                 <label>Note Section 1 - Heading:</label>
                 <input type="text" id="note1Heading" placeholder="e.g. Notes" oninput="updateView()">
                 <textarea id="notes" placeholder="Payment terms, Bank Details..." oninput="updateView()"></textarea>
-                
                 <div style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;">
                     <label>Note Section 2 - Heading (Optional):</label>
                     <input type="text" id="note2Heading" placeholder="e.g. Terms & Conditions" oninput="updateView()">
@@ -327,26 +319,15 @@
         <div id="historyTab" class="tab-content">
             <div class="control-group" style="border: none;">
                 <h3>Saved Documents History</h3>
-                <p style="font-size: 12px; color: var(--text-muted); margin-top:-10px;">All generated invoices are saved locally here. Click one to reload it.</p>
-                
                 <input type="text" id="histSearch" class="search-bar" placeholder="🔍 Search by Customer Name or Doc No..." oninput="renderHistory()">
-                
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <div style="flex: 1;">
-                        <label>From Date</label>
-                        <input type="date" id="histFrom" onchange="renderHistory()">
-                    </div>
-                    <div style="flex: 1;">
-                        <label>To Date</label>
-                        <input type="date" id="histTo" onchange="renderHistory()">
-                    </div>
+                    <div style="flex: 1;"><label>From Date</label><input type="date" id="histFrom" onchange="renderHistory()"></div>
+                    <div style="flex: 1;"><label>To Date</label><input type="date" id="histTo" onchange="renderHistory()"></div>
                     <div style="flex: 0.4; display:flex; align-items:flex-end;">
                         <button class="btn btn-add" style="padding: 10px; margin-bottom: 15px;" onclick="clearHistFilters()">Clear</button>
                     </div>
                 </div>
-
-                <div id="historyListContainer" style="max-height: 500px; overflow-y: auto; padding-right: 5px;">
-                    </div>
+                <div id="historyListContainer" style="max-height: 500px; overflow-y: auto; padding-right: 5px;"></div>
             </div>
         </div>
 
@@ -359,7 +340,6 @@
                 <button class="btn btn-add" onclick="saveCustomerDB()">+ Save Customer</button>
                 <div id="customerDBList" style="margin-top: 15px; max-height: 250px; overflow-y: auto;"></div>
             </div>
-
             <div class="control-group" style="border:none;">
                 <h3>Item Database</h3>
                 <input type="text" id="searchItemDB" class="search-bar" placeholder="🔍 Search Items..." oninput="renderDBLists()">
@@ -377,20 +357,15 @@
                     <input type="checkbox" id="showBank" onchange="updateView()" checked>
                     <label for="showBank"><strong>Show Bank Details on Invoice</strong></label>
                 </div>
-
                 <div id="bankInputs">
                     <label>Bank Logo Image (Square PNG/JPG):</label>
                     <input type="file" id="bankLogoInput" accept="image/*" onchange="loadBankLogo(event)" style="padding: 10px; background:#fff;">
-                    
                     <label>Bank Name:</label>
                     <input type="text" id="bankName" placeholder="e.g. Commercial Bank" oninput="updateView()">
-                    
                     <label>Account Name:</label>
                     <input type="text" id="accName" placeholder="e.g. NexaTag Solutions" oninput="updateView()">
-                    
                     <label>Account Number:</label>
                     <input type="text" id="accNo" placeholder="e.g. 1000 2345 6789" oninput="updateView()">
-                    
                     <label>Branch:</label>
                     <input type="text" id="bankBranch" placeholder="e.g. Kurunegala Branch" oninput="updateView()">
                 </div>
@@ -398,7 +373,6 @@
         </div>
 
         <div id="settingsTab" class="tab-content">
-            
             <div class="control-group">
                 <h3>Profile Management</h3>
                 <div style="display: flex; gap: 10px;">
@@ -407,42 +381,30 @@
                     <button class="btn" style="padding: 10px; background: #ef4444; border: none; flex: 0.5;" onclick="deleteCurrentProfile()">🗑️ Delete</button>
                 </div>
             </div>
-
             <div class="control-group">
                 <h3>Business Details (From)</h3>
                 <input type="text" id="compName" placeholder="Business Name" oninput="updateView()">
                 <textarea id="compAddress" placeholder="Address, Phone, Email..." oninput="updateView()"></textarea>
             </div>
-
             <div class="control-group">
                 <h3>Theme Colors</h3>
-                <p style="font-size: 12px; color: #64748b; margin-top: 0;">Keep it clean. Use your brand's main color as Primary.</p>
                 <div class="color-row">
-                    <div class="color-box">
-                        <label>Primary (Main)</label>
-                        <input type="color" id="primaryColor" oninput="updateTheme()">
-                    </div>
-                    <div class="color-box">
-                        <label>Secondary (Accent Line)</label>
-                        <input type="color" id="secondaryColor" oninput="updateTheme()">
-                    </div>
+                    <div class="color-box"><label>Primary (Main)</label><input type="color" id="primaryColor" oninput="updateTheme()"></div>
+                    <div class="color-box"><label>Secondary (Accent)</label><input type="color" id="secondaryColor" oninput="updateTheme()"></div>
                 </div>
             </div>
-
             <div class="control-group">
                 <h3>Company Logo</h3>
                 <input type="file" id="logoInput" accept="image/*" onchange="loadLogo(event)" style="padding: 10px; background:#fff;">
                 <label>Logo Size:</label>
                 <input type="range" id="logoSize" min="50" max="300" value="140" oninput="updateTheme()">
             </div>
-
             <div class="control-group" style="border:none;">
                 <h3>Signature Settings</h3>
                 <select id="sigType" onchange="updateSignatureDisplay()">
                     <option value="upload">Upload Authorized Signature</option>
                     <option value="electronic">Electronic Text (No Signature)</option>
                 </select>
-
                 <div id="sigUploadControls" style="margin-top: 15px;">
                     <label>Upload Image (PNG):</label>
                     <input type="file" id="sigInput" accept="image/*" onchange="loadSignature(event)" style="padding: 10px; background:#fff;">
@@ -458,17 +420,14 @@
     <div class="preview" id="printableArea">
         <div class="top-accent"></div>
         <div class="preview-content">
-            
             <div class="header-section">
                 <div class="logo-container">
                     <img id="logoPreview" src="" style="display:none;" alt="Logo">
                     <h2 id="logoTextFallback" style="margin:0; color:var(--primary); font-size: 28px; font-weight:800; letter-spacing:-1px;">Business Name</h2>
                 </div>
-                
                 <div class="doc-title-wrapper">
                     <h1 class="doc-title" id="displayDocType">INVOICE</h1>
                     <div class="doc-number" id="displayDocNo">INV-1001</div>
-                    
                     <div class="doc-dates">
                         <div class="date-line"><strong>Date:</strong> <span id="displayDate"></span></div>
                         <div class="date-line" id="displayValidDateArea" style="display:none;"><strong>Valid Until:</strong> <span id="displayValidDate"></span></div>
@@ -482,7 +441,6 @@
                     <div class="info-title" id="displayCompName">Business Name</div>
                     <div class="info-text" id="displayCompAddress">-</div>
                 </div>
-
                 <div class="info-card">
                     <h4>Bill To</h4>
                     <div class="info-title" id="displayCustName">Customer Name</div>
@@ -491,26 +449,15 @@
             </div>
 
             <table class="modern-table">
-                <thead id="tableHead">
-                    </thead>
-                <tbody id="tableBody">
-                    </tbody>
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
             </table>
 
             <div class="summary-section">
                 <div class="summary-box">
-                    <div class="summary-row">
-                        <span>Subtotal</span>
-                        <span id="subTotal">LKR 0.00</span>
-                    </div>
-                    <div class="summary-row discount-row" id="discountRow" style="display: none;">
-                        <span>Discount</span>
-                        <span id="totalDiscountAmt">- LKR 0.00</span>
-                    </div>
-                    <div class="summary-total">
-                        <span>Total Amount</span>
-                        <span id="grandTotal">LKR 0.00</span>
-                    </div>
+                    <div class="summary-row"><span>Subtotal</span><span id="subTotal">LKR 0.00</span></div>
+                    <div class="summary-row discount-row" id="discountRow" style="display: none;"><span>Discount</span><span id="totalDiscountAmt">- LKR 0.00</span></div>
+                    <div class="summary-total"><span>Total Amount</span><span id="grandTotal">LKR 0.00</span></div>
                 </div>
             </div>
 
@@ -551,7 +498,6 @@
                     <p>This is an electronically generated document,<br>no signature is required.</p>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -560,282 +506,279 @@
     <div class="modal-box">
         <h3 id="modalTitle">Title</h3>
         <p id="modalMessage">Message goes here</p>
-        <div class="modal-actions" id="modalActions">
-        </div>
+        <div class="modal-actions" id="modalActions"></div>
     </div>
 </div>
 
 <script>
+    // ==========================================
+    // 1. FIREBASE CONFIGURATION - ඔයාගේ Config එක මෙතනට දාන්න
+    // ==========================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyA8u7LCWwP_BNobXKdWh2qWcoaLgx50XB4",
+        authDomain: "my-biling-system-database.firebaseapp.com",
+        databaseURL: "https://my-biling-system-database-default-rtdb.firebaseio.com",
+        projectId: "my-biling-system-database",
+        storageBucket: "my-biling-system-database.firebasestorage.app",
+        messagingSenderId: "364978658217",
+        appId: "1:364978658217:web:c0848529f5382b419842b8"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ==========================================
+    // 2. APP VARIABLES
+    // ==========================================
     let itemsList = [];
     let editingIndex = -1;
     let editingDbCustIndex = -1;
     let editingDbItemIndex = -1;
-    
-    // DB & History Variables
+    let originalDocNo = null;
+
     let customersDB = [];
     let productsDB = [];
     let docHistory = [];
-    
-    // Tracking Edit Mode
-    let originalDocNo = null;
-
-    // Profiles Data Management
     let profileList = [];
+    let currentBizListenerRef = null;
+
     const defaultProfileList = [
-        { id: "biz1", name: "🏢 NexaTag" },
-        { id: "biz2", name: "🎨 Hype Studio" },
-        { id: "biz3", name: "🧾 Bill Mate" }
+        { id: "biz1", name: "🏢 Default Business" }
     ];
 
-    const defaultProfilesSettings = {
-        "biz1": {
-            compName: "NexaTag",
-            compAddress: "Kurunegala, Sri Lanka\nPhone: +94 77 123 4567\nEmail: info@nexatag.com",
-            primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "upload",
-            bankName: "Commercial Bank", accName: "NexaTag Solutions", accNo: "1000 0000 0000", bankBranch: "Kurunegala",
-            note1Heading: "Notes", notes: "Thank you for your business!",
-            note2Heading: "Terms & Conditions", note2Text: "Items cannot be returned after 14 days."
-        },
-        "biz2": {
-            compName: "Hype Studio",
-            compAddress: "Kurunegala, Sri Lanka\nPhone: +94 77 000 0000",
-            primaryColor: "#e11d48", secondaryColor: "#fb7185", logoSize: 140, sigSize: 120, sigType: "electronic",
-            bankName: "HNB", accName: "Hype Studio", accNo: "2000 0000 0000", bankBranch: "Kurunegala",
-            note1Heading: "Payment Terms", notes: "Please pay within 7 days.",
-            note2Heading: "", note2Text: ""
-        },
-        "biz3": {
-            compName: "Bill Mate",
-            compAddress: "Kurunegala, Sri Lanka\nPhone: +94 77 111 1111",
-            primaryColor: "#065f46", secondaryColor: "#10b981", logoSize: 140, sigSize: 120, sigType: "electronic",
-            bankName: "BOC", accName: "Bill Mate POS", accNo: "3000 0000 0000", bankBranch: "Kurunegala",
-            note1Heading: "Notes", notes: "Cheques should be drawn in favor of 'Bill Mate'.",
-            note2Heading: "", note2Text: ""
-        }
-    };
-    
+    // ==========================================
+    // 3. INIT APP & LISTENERS (Realtime Sync)
+    // ==========================================
     function initApp() {
-        // Load custom profile list or fall back to defaults
-        let savedProfileList = localStorage.getItem('invoice_profile_list');
-        profileList = savedProfileList ? JSON.parse(savedProfileList) : defaultProfileList;
-        renderProfileDropdown();
+        // Listen to Global Profile List changes
+        db.ref('global/profileList').on('value', (snapshot) => {
+            let data = snapshot.val();
+            let currentSelection = document.getElementById('profileSelect').value;
+            
+            profileList = data ? data : defaultProfileList;
+            renderProfileDropdown();
+            
+            if(profileList.some(p => p.id === currentSelection)) {
+                document.getElementById('profileSelect').value = currentSelection;
+            } else if(profileList.length > 0) {
+                document.getElementById('profileSelect').value = profileList[0].id;
+            }
+            loadProfile(); // Load active profile details
+        });
 
         document.getElementById('docDate').valueAsDate = new Date();
         let nextWeek = new Date();
         nextWeek.setDate(nextWeek.getDate() + 14);
         document.getElementById('validDate').valueAsDate = nextWeek;
-        
-        loadProfile(); 
-        renderTable(); 
     }
 
-    // --- PROFILE MANAGEMENT ---
-    function renderProfileDropdown() {
-        let select = document.getElementById('profileSelect');
-        let currentVal = select.value;
-        select.innerHTML = '';
-        profileList.forEach(p => {
-            let opt = document.createElement('option');
-            opt.value = p.id;
-            opt.innerText = p.name;
-            select.appendChild(opt);
-        });
-        
-        // Re-select previously active value if it still exists
-        if (profileList.some(p => p.id === currentVal)) {
-            select.value = currentVal;
-        } else if (profileList.length > 0) {
-            select.value = profileList[0].id; // Fallback to first
+    function loadProfile() {
+        let activeBiz = document.getElementById('profileSelect').value;
+        if (!activeBiz) return; 
+
+        // Turn off old listeners when switching profiles
+        if (currentBizListenerRef) {
+            db.ref('profiles/' + currentBizListenerRef).off();
+            db.ref('customers/' + currentBizListenerRef).off();
+            db.ref('products/' + currentBizListenerRef).off();
+            db.ref('history/' + currentBizListenerRef).off();
         }
+        currentBizListenerRef = activeBiz;
+        originalDocNo = null; // Reset editor
+
+        // Listen for Settings changes
+        db.ref('profiles/' + activeBiz).on('value', (snap) => {
+            let profile = snap.val() || { compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic" };
+            
+            document.getElementById('compName').value = profile.compName || '';
+            document.getElementById('compAddress').value = profile.compAddress || '';
+            document.getElementById('primaryColor').value = profile.primaryColor || '#0f172a';
+            document.getElementById('secondaryColor').value = profile.secondaryColor || '#3b82f6';
+            document.getElementById('logoSize').value = profile.logoSize || 140;
+            document.getElementById('sigSize').value = profile.sigSize || 120;
+            document.getElementById('sigType').value = profile.sigType || 'upload';
+            
+            document.getElementById('bankName').value = profile.bankName || '';
+            document.getElementById('accName').value = profile.accName || '';
+            document.getElementById('accNo').value = profile.accNo || '';
+            document.getElementById('bankBranch').value = profile.bankBranch || '';
+            
+            document.getElementById('note1Heading').value = profile.note1Heading !== undefined ? profile.note1Heading : 'Notes';
+            document.getElementById('notes').value = profile.notes || '';
+            document.getElementById('note2Heading').value = profile.note2Heading !== undefined ? profile.note2Heading : 'Terms & Conditions';
+            document.getElementById('note2Text').value = profile.note2Text || '';
+
+            if(profile.logoBase64) {
+                document.getElementById('logoPreview').src = profile.logoBase64;
+                document.getElementById('logoPreview').style.display = 'block';
+                document.getElementById('logoTextFallback').style.display = 'none';
+            } else {
+                document.getElementById('logoPreview').style.display = 'none';
+                document.getElementById('logoTextFallback').style.display = 'block';
+            }
+
+            if(profile.bankLogoBase64) {
+                document.getElementById('bankLogoPreview').src = profile.bankLogoBase64;
+                document.getElementById('bankLogoPreview').style.display = 'block';
+                document.getElementById('bankLogoFallback').style.display = 'none';
+            } else {
+                document.getElementById('bankLogoPreview').style.display = 'none';
+                document.getElementById('bankLogoFallback').style.display = 'block';
+            }
+
+            if(profile.sigBase64) {
+                document.getElementById('sigPreview').src = profile.sigBase64;
+                document.getElementById('sigPreview').style.display = 'block';
+            } else {
+                document.getElementById('sigPreview').style.display = 'none';
+            }
+
+            updateTheme();
+            updateSignatureDisplay();
+            updateView();
+        });
+
+        // Listen for DB and History changes
+        db.ref('customers/' + activeBiz).on('value', snap => { customersDB = snap.val() || []; renderDBLists(); });
+        db.ref('products/' + activeBiz).on('value', snap => { productsDB = snap.val() || []; renderDBLists(); });
+        db.ref('history/' + activeBiz).on('value', snap => { 
+            docHistory = snap.val() || []; 
+            renderHistory();
+            if (!originalDocNo) handleDocTypeChange(); // Update doc number automatically
+        });
+    }
+
+    // ==========================================
+    // 4. FIREBASE SAVE FUNCTIONS
+    // ==========================================
+    function saveProfile() {
+        let activeBiz = document.getElementById('profileSelect').value;
+        let profileToSave = {
+            compName: document.getElementById('compName').value,
+            compAddress: document.getElementById('compAddress').value,
+            primaryColor: document.getElementById('primaryColor').value,
+            secondaryColor: document.getElementById('secondaryColor').value,
+            logoSize: document.getElementById('logoSize').value,
+            sigSize: document.getElementById('sigSize').value,
+            sigType: document.getElementById('sigType').value,
+            bankName: document.getElementById('bankName').value,
+            accName: document.getElementById('accName').value,
+            accNo: document.getElementById('accNo').value,
+            bankBranch: document.getElementById('bankBranch').value,
+            note1Heading: document.getElementById('note1Heading').value,
+            notes: document.getElementById('notes').value,
+            note2Heading: document.getElementById('note2Heading').value,
+            note2Text: document.getElementById('note2Text').value,
+            logoBase64: document.getElementById('logoPreview').style.display === 'block' ? document.getElementById('logoPreview').src : null,
+            bankLogoBase64: document.getElementById('bankLogoPreview').style.display === 'block' ? document.getElementById('bankLogoPreview').src : null,
+            sigBase64: document.getElementById('sigPreview').style.display === 'block' ? document.getElementById('sigPreview').src : null
+        };
+
+        db.ref('profiles/' + activeBiz).set(profileToSave).then(() => {
+            showAlertModal("Success", "Settings Saved Successfully across all devices!");
+        });
     }
 
     function addNewProfile() {
-        let name = prompt("Enter a name for the new profile (e.g., My New Shop):");
+        let name = prompt("Enter a name for the new profile:");
         if (!name || name.trim() === "") return;
         
-        let newId = "biz_" + new Date().getTime(); // Unique ID
+        let newId = "biz_" + new Date().getTime();
         profileList.push({ id: newId, name: name.trim() });
-        localStorage.setItem('invoice_profile_list', JSON.stringify(profileList));
         
-        // Generate an empty default settings block for it
-        let newProfileData = { 
-            compName: name.trim(), 
-            primaryColor: "#0f172a", 
-            secondaryColor: "#3b82f6", 
-            logoSize: 140, 
-            sigSize: 120, 
-            sigType: "electronic" 
-        };
-        localStorage.setItem('invoice_profile_' + newId, JSON.stringify(newProfileData));
-        
-        renderProfileDropdown();
-        document.getElementById('profileSelect').value = newId;
-        loadProfile();
-        showAlertModal("Success", `Profile '${name.trim()}' created successfully!`);
+        // Save to Firebase
+        db.ref('global/profileList').set(profileList).then(() => {
+            document.getElementById('profileSelect').value = newId;
+            loadProfile();
+            showAlertModal("Success", `Profile '${name.trim()}' created!`);
+        });
     }
 
     function renameCurrentProfile() {
         let activeId = document.getElementById('profileSelect').value;
         let profile = profileList.find(p => p.id === activeId);
-        
         let newName = prompt("Enter new name for this profile:", profile.name);
         if (!newName || newName.trim() === "") return;
         
         profile.name = newName.trim();
-        localStorage.setItem('invoice_profile_list', JSON.stringify(profileList));
-        renderProfileDropdown();
+        db.ref('global/profileList').set(profileList);
     }
 
     function deleteCurrentProfile() {
-        if (profileList.length <= 1) {
-            return showAlertModal("Action Denied", "You must have at least one active profile. You cannot delete the only remaining profile.");
-        }
+        if (profileList.length <= 1) return showAlertModal("Denied", "You must have at least one active profile.");
         
         let activeId = document.getElementById('profileSelect').value;
         let profile = profileList.find(p => p.id === activeId);
         
-        showConfirmModal(
-            "Delete Profile", 
-            `Are you sure you want to COMPLETELY delete the profile '${profile.name}'?\n\nThis will instantly delete ALL its saved settings, history, and customer/item databases!`, 
-            "Yes, Delete", 
-            "modal-btn-danger", 
-            function() {
-                // Remove from list
-                profileList = profileList.filter(p => p.id !== activeId);
-                localStorage.setItem('invoice_profile_list', JSON.stringify(profileList));
-                
-                // Erase local storage data
-                localStorage.removeItem('invoice_profile_' + activeId);
-                localStorage.removeItem('invoice_customers_db_' + activeId);
-                localStorage.removeItem('invoice_products_db_' + activeId);
-                localStorage.removeItem('invoice_history_' + activeId);
-                
-                renderProfileDropdown();
-                loadProfile(); // Loads the next available one automatically
-            }
-        );
-    }
-
-    // --- DATE AUTO-CALCULATION ---
-    function handleDocDateChange() {
-        let docType = document.getElementById('docType').value;
-        let dateVal = document.getElementById('docDate').value;
-        
-        if (docType === 'QUOTATION' && dateVal) {
-            let d = new Date(dateVal);
-            d.setDate(d.getDate() + 14); // Add exactly 2 weeks
-            document.getElementById('validDate').valueAsDate = d;
-        }
-        updateView();
-    }
-
-    // --- SMART NUMBERING FUNCTION ---
-    function getNextDocNo(type) {
-        let maxNumber = 0;
-        let bestPrefix = type === 'QUOTATION' ? 'QUO-' : 'INV-';
-        let numberLength = 4; // Default padding e.g., 1001
-        let found = false;
-
-        for (let i = 0; i < docHistory.length; i++) {
-            if (docHistory[i].docType === type) {
-                let match = docHistory[i].docNo.match(/^(.*?)(\d+)$/);
-                if (match) {
-                    let num = parseInt(match[2], 10);
-                    if (num > maxNumber) {
-                        maxNumber = num;
-                        bestPrefix = match[1];
-                        numberLength = match[2].length;
-                        found = true;
-                    }
-                }
-            }
-        }
-
-        if (found) {
-            let nextNumber = maxNumber + 1;
-            return bestPrefix + String(nextNumber).padStart(numberLength, '0');
-        }
-
-        return type === 'QUOTATION' ? 'QUO-1001' : 'INV-1001';
-    }
-
-    // --- CUSTOM MODAL FUNCTIONS ---
-    let modalCallback = null;
-    function closeCustomModal() {
-        document.getElementById('customModal').classList.remove('show');
-    }
-    function showAlertModal(title, msg) {
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalMessage').innerText = msg;
-        document.getElementById('modalActions').innerHTML = `<button class="modal-btn modal-btn-confirm" onclick="closeCustomModal()">OK</button>`;
-        document.getElementById('customModal').classList.add('show');
-    }
-    function showConfirmModal(title, msg, confirmText, btnClass, callback) {
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalMessage').innerText = msg;
-        modalCallback = callback;
-        document.getElementById('modalActions').innerHTML = `
-            <button class="modal-btn modal-btn-cancel" onclick="closeCustomModal()">Cancel</button>
-            <button class="modal-btn ${btnClass}" onclick="executeModalCallback()">${confirmText}</button>
-        `;
-        document.getElementById('customModal').classList.add('show');
-    }
-    function executeModalCallback() {
-        closeCustomModal();
-        if(modalCallback) modalCallback();
-    }
-
-    // --- RESET FORM FUNCTION ---
-    function resetInvoiceForm() {
-        document.getElementById('custName').value = '';
-        document.getElementById('custAddress').value = '';
-        document.getElementById('docDate').valueAsDate = new Date();
-        
-        let nextWeek = new Date();
-        nextWeek.setDate(nextWeek.getDate() + 14);
-        document.getElementById('validDate').valueAsDate = nextWeek;
-
-        itemsList = [];
-        editingIndex = -1;
-        // DO NOT reset originalDocNo here! It is managed in the workflow.
-
-        resetItemForm(); 
-        renderTable();
-    }
-
-    // --- PRINT & SAVE LOGIC ---
-    function initiatePrintAndSave() {
-        let docNo = document.getElementById('docNo').value.trim();
-        let docType = document.getElementById('docType').value;
-
-        if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
-        if(itemsList.length === 0) return showAlertModal("Error", "Please add at least one item to the document!");
-
-        let exists = docHistory.some(h => h.docNo === docNo);
-
-        if (exists && originalDocNo !== docNo) {
-            return showAlertModal("Duplicate Number Found", `Document Number ${docNo} already exists in the history!\n\nPlease use a different number or edit the existing one from the History tab.`);
-        }
-
-        let title = exists ? "Update Document" : "Save Document";
-        let msg = exists ? "Are you sure you want to update this existing document in the history?" : "Are you sure you want to save and print this new document?";
-        let btnText = exists ? "Yes, Update" : "Yes, Save";
-
-        showConfirmModal(title, msg, btnText, "modal-btn-confirm", function() {
-            // Save to history
-            saveToHistory();
+        showConfirmModal("Delete Profile", `Delete '${profile.name}' permanently from all devices?`, "Yes, Delete", "modal-btn-danger", function() {
+            profileList = profileList.filter(p => p.id !== activeId);
+            db.ref('global/profileList').set(profileList);
             
-            // Print
-            window.print();
-            
-            // Clear edit mode entirely
-            originalDocNo = null; 
-
-            // Clear the form and set up for the NEXT new document
-            resetInvoiceForm();
-            handleDocTypeChange(); // Will auto-fetch the actual next available number
-            updateView();
+            // Delete data paths
+            db.ref('profiles/' + activeId).remove();
+            db.ref('customers/' + activeId).remove();
+            db.ref('products/' + activeId).remove();
+            db.ref('history/' + activeId).remove();
         });
+    }
+
+    function saveCustomerDB() {
+        let activeBiz = document.getElementById('profileSelect').value;
+        let name = document.getElementById('dbCustName').value.trim();
+        let address = document.getElementById('dbCustAddress').value.trim();
+        if(!name) return showAlertModal("Error", "Customer Name is required.");
+        
+        if (editingDbCustIndex !== -1) {
+            customersDB[editingDbCustIndex] = {name, address};
+            editingDbCustIndex = -1;
+            let btn = document.querySelector('#dbTab .control-group:nth-child(1) .btn-add');
+            btn.innerHTML = "+ Save Customer"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
+        } else {
+            let existingIndex = customersDB.findIndex(c => c.name === name);
+            if(existingIndex !== -1) customersDB[existingIndex] = {name, address};
+            else customersDB.push({name, address});
+        }
+        
+        db.ref('customers/' + activeBiz).set(customersDB);
+        document.getElementById('dbCustName').value = '';
+        document.getElementById('dbCustAddress').value = '';
+    }
+
+    function deleteCustomerDB(index) {
+        let activeBiz = document.getElementById('profileSelect').value;
+        customersDB.splice(index, 1);
+        db.ref('customers/' + activeBiz).set(customersDB);
+    }
+
+    function saveItemDB() {
+        let activeBiz = document.getElementById('profileSelect').value;
+        let name = document.getElementById('dbItemName').value.trim();
+        let desc = document.getElementById('dbItemDesc').value.trim();
+        let price = parseFloat(document.getElementById('dbItemPrice').value) || 0;
+        if(!name) return showAlertModal("Error", "Item Name is required.");
+
+        if (editingDbItemIndex !== -1) {
+            productsDB[editingDbItemIndex] = {name, desc, price};
+            editingDbItemIndex = -1;
+            let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add');
+            btn.innerHTML = "+ Save Item"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
+        } else {
+            let existingIndex = productsDB.findIndex(p => p.name === name);
+            if(existingIndex !== -1) productsDB[existingIndex] = {name, desc, price};
+            else productsDB.push({name, desc, price});
+        }
+
+        db.ref('products/' + activeBiz).set(productsDB);
+        document.getElementById('dbItemName').value = '';
+        document.getElementById('dbItemDesc').value = '';
+        document.getElementById('dbItemPrice').value = '';
+    }
+
+    function deleteItemDB(index) {
+        let activeBiz = document.getElementById('profileSelect').value;
+        productsDB.splice(index, 1);
+        db.ref('products/' + activeBiz).set(productsDB);
     }
 
     function saveToHistory() {
@@ -856,16 +799,137 @@
 
         let existingIndex = docHistory.findIndex(h => h.docNo === docNo);
         if (existingIndex >= 0) {
-            docHistory[existingIndex] = entry; // Update
+            docHistory[existingIndex] = entry; 
         } else {
-            docHistory.push(entry); // Add New
+            docHistory.push(entry); 
         }
 
-        localStorage.setItem('invoice_history_' + activeBiz, JSON.stringify(docHistory));
-        renderHistory();
+        db.ref('history/' + activeBiz).set(docHistory);
     }
 
-    // --- HISTORY MANAGEMENT FUNCTIONS ---
+    function deleteHistoryItem(event, docNoToDelete) {
+        event.stopPropagation(); 
+        showConfirmModal("Delete Document", `Permanently delete document ${docNoToDelete}?`, "Delete", "modal-btn-danger", function() {
+            let activeBiz = document.getElementById('profileSelect').value;
+            docHistory = docHistory.filter(h => h.docNo !== docNoToDelete);
+            db.ref('history/' + activeBiz).set(docHistory);
+            
+            if (originalDocNo === docNoToDelete) {
+                originalDocNo = null; 
+                resetInvoiceForm();
+                handleDocTypeChange(); 
+            }
+        });
+    }
+
+    // ==========================================
+    // 5. REMAINING UI FUNCTIONS (Unchanged logic)
+    // ==========================================
+    function renderProfileDropdown() {
+        let select = document.getElementById('profileSelect');
+        let currentVal = select.value;
+        select.innerHTML = '';
+        profileList.forEach(p => {
+            let opt = document.createElement('option');
+            opt.value = p.id;
+            opt.innerText = p.name;
+            select.appendChild(opt);
+        });
+    }
+
+    function handleDocDateChange() {
+        let docType = document.getElementById('docType').value;
+        let dateVal = document.getElementById('docDate').value;
+        if (docType === 'QUOTATION' && dateVal) {
+            let d = new Date(dateVal);
+            d.setDate(d.getDate() + 14); 
+            document.getElementById('validDate').valueAsDate = d;
+        }
+        updateView();
+    }
+
+    function getNextDocNo(type) {
+        let maxNumber = 0;
+        let bestPrefix = type === 'QUOTATION' ? 'QUO-' : 'INV-';
+        let numberLength = 4;
+        let found = false;
+
+        for (let i = 0; i < docHistory.length; i++) {
+            if (docHistory[i].docType === type) {
+                let match = docHistory[i].docNo.match(/^(.*?)(\d+)$/);
+                if (match) {
+                    let num = parseInt(match[2], 10);
+                    if (num > maxNumber) {
+                        maxNumber = num;
+                        bestPrefix = match[1];
+                        numberLength = match[2].length;
+                        found = true;
+                    }
+                }
+            }
+        }
+        if (found) {
+            let nextNumber = maxNumber + 1;
+            return bestPrefix + String(nextNumber).padStart(numberLength, '0');
+        }
+        return type === 'QUOTATION' ? 'QUO-1001' : 'INV-1001';
+    }
+
+    let modalCallback = null;
+    function closeCustomModal() { document.getElementById('customModal').classList.remove('show'); }
+    function showAlertModal(title, msg) {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalMessage').innerText = msg;
+        document.getElementById('modalActions').innerHTML = `<button class="modal-btn modal-btn-confirm" onclick="closeCustomModal()">OK</button>`;
+        document.getElementById('customModal').classList.add('show');
+    }
+    function showConfirmModal(title, msg, confirmText, btnClass, callback) {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalMessage').innerText = msg;
+        modalCallback = callback;
+        document.getElementById('modalActions').innerHTML = `
+            <button class="modal-btn modal-btn-cancel" onclick="closeCustomModal()">Cancel</button>
+            <button class="modal-btn ${btnClass}" onclick="executeModalCallback()">${confirmText}</button>
+        `;
+        document.getElementById('customModal').classList.add('show');
+    }
+    function executeModalCallback() { closeCustomModal(); if(modalCallback) modalCallback(); }
+
+    function resetInvoiceForm() {
+        document.getElementById('custName').value = '';
+        document.getElementById('custAddress').value = '';
+        document.getElementById('docDate').valueAsDate = new Date();
+        let nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 14);
+        document.getElementById('validDate').valueAsDate = nextWeek;
+        itemsList = [];
+        editingIndex = -1;
+        resetItemForm(); 
+        renderTable();
+    }
+
+    function initiatePrintAndSave() {
+        let docNo = document.getElementById('docNo').value.trim();
+        if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
+        if(itemsList.length === 0) return showAlertModal("Error", "Please add at least one item to the document!");
+
+        let exists = docHistory.some(h => h.docNo === docNo);
+        if (exists && originalDocNo !== docNo) {
+            return showAlertModal("Duplicate Number Found", `Document Number ${docNo} already exists in the history!`);
+        }
+
+        let title = exists ? "Update Document" : "Save Document";
+        let msg = exists ? "Update this document in the cloud history?" : "Save and print this new document?";
+        
+        showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
+            saveToHistory();
+            window.print();
+            originalDocNo = null; 
+            resetInvoiceForm();
+            handleDocTypeChange(); 
+            updateView();
+        });
+    }
+
     function renderHistory() {
         let searchTerm = (document.getElementById('histSearch').value || '').toLowerCase();
         let fromDate = document.getElementById('histFrom').value;
@@ -882,7 +946,6 @@
             if (matchSearch && matchFrom && matchTo) {
                 let badgeClass = h.docType === 'QUOTATION' ? 'hist-badge quo' : 'hist-badge';
                 let originalIndex = docHistory.findIndex(orig => orig.docNo === h.docNo);
-
                 html += `
                 <div class="hist-card" onclick="loadHistoryItem(${originalIndex})">
                     <div class="hist-info">
@@ -900,30 +963,22 @@
             }
         });
 
-        if(html === '') {
-            html = '<p style="text-align:center; color:var(--text-muted); font-size:13px; margin-top:20px;">No documents found matching the criteria.</p>';
-        }
-
+        if(html === '') html = '<p style="text-align:center; color:var(--text-muted); font-size:13px; margin-top:20px;">No documents found.</p>';
         document.getElementById('historyListContainer').innerHTML = html;
     }
 
     function loadHistoryItem(index) {
         let h = docHistory[index];
         if(!h) return;
-
         document.getElementById('docType').value = h.docType;
         document.getElementById('docNo').value = h.docNo;
         document.getElementById('docDate').value = h.date;
         document.getElementById('validDate').value = h.validDate || '';
         document.getElementById('custName').value = h.custName !== 'Unknown Customer' ? h.custName : '';
         document.getElementById('custAddress').value = h.custAddress || '';
-
         itemsList = JSON.parse(JSON.stringify(h.items));
-        
-        // Mark as editing this document
         originalDocNo = h.docNo;
         
-        // Don't auto-generate next number while editing
         document.getElementById('displayDocType').innerText = h.docType;
         if(h.docType === 'QUOTATION') {
             document.getElementById('validDateControl').style.display = 'block';
@@ -932,36 +987,8 @@
             document.getElementById('validDateControl').style.display = 'none';
             document.getElementById('displayValidDateArea').style.display = 'none'; 
         }
-
-        renderTable();
-        updateView();
-
+        renderTable(); updateView();
         switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
-    }
-
-    function deleteHistoryItem(event, docNoToDelete) {
-        event.stopPropagation(); 
-        
-        showConfirmModal(
-            "Delete Document", 
-            `Are you sure you want to permanently delete document ${docNoToDelete}?`, 
-            "Delete", 
-            "modal-btn-danger", 
-            function() {
-                let activeBiz = document.getElementById('profileSelect').value;
-                docHistory = docHistory.filter(h => h.docNo !== docNoToDelete);
-                localStorage.setItem('invoice_history_' + activeBiz, JSON.stringify(docHistory));
-                
-                // If currently editing the deleted item, reset back to new form
-                if (originalDocNo === docNoToDelete) {
-                    originalDocNo = null; 
-                    resetInvoiceForm();
-                    handleDocTypeChange(); // Load the fresh next number
-                }
-                
-                renderHistory();
-            }
-        );
     }
 
     function clearHistFilters() {
@@ -971,289 +998,83 @@
         renderHistory();
     }
 
-    // --- DB MANAGEMENT FUNCTIONS ---
     function renderDBLists() {
         let custSearchTerm = (document.getElementById('searchCustDB')?.value || '').toLowerCase();
         let itemSearchTerm = (document.getElementById('searchItemDB')?.value || '').toLowerCase();
 
-        let custDataListHTML = '';
-        let custUIHTML = '';
+        let custDataListHTML = ''; let custUIHTML = '';
         customersDB.forEach((c, index) => {
             custDataListHTML += `<option value="${c.name}">`;
-            
             if (c.name.toLowerCase().includes(custSearchTerm) || c.address.toLowerCase().includes(custSearchTerm)) {
                 custUIHTML += `<div class="db-list-item">
                     <div><strong style="color:var(--primary);">${c.name}</strong><br><span style="color:var(--text-muted);">${c.address}</span></div>
-                    <div>
-                        <button class="edit-btn" style="opacity:1;" onclick="editCustomerDB(${index})" title="Edit Customer">✏️</button>
-                        <button class="del-btn" style="opacity:1;" onclick="deleteCustomerDB(${index})" title="Delete Customer">✖</button>
-                    </div>
+                    <div><button class="edit-btn" style="opacity:1;" onclick="editCustomerDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteCustomerDB(${index})">✖</button></div>
                 </div>`;
             }
         });
-        document.getElementById('custDatalist').innerHTML = custDataListHTML;
-        document.getElementById('customerDBList').innerHTML = custUIHTML;
+        document.getElementById('custDatalist').innerHTML = custDataListHTML; document.getElementById('customerDBList').innerHTML = custUIHTML;
 
-        let prodDataListHTML = '';
-        let prodUIHTML = '';
+        let prodDataListHTML = ''; let prodUIHTML = '';
         productsDB.forEach((p, index) => {
             prodDataListHTML += `<option value="${p.name}">`;
-            
             if (p.name.toLowerCase().includes(itemSearchTerm) || (p.desc && p.desc.toLowerCase().includes(itemSearchTerm))) {
                 prodUIHTML += `<div class="db-list-item">
                     <div><strong style="color:var(--primary);">${p.name}</strong><br><span style="color:var(--secondary); font-weight:700;">LKR ${formatMoney(p.price)}</span></div>
-                    <div>
-                        <button class="edit-btn" style="opacity:1;" onclick="editItemDB(${index})" title="Edit Item">✏️</button>
-                        <button class="del-btn" style="opacity:1;" onclick="deleteItemDB(${index})" title="Delete Item">✖</button>
-                    </div>
+                    <div><button class="edit-btn" style="opacity:1;" onclick="editItemDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteItemDB(${index})">✖</button></div>
                 </div>`;
             }
         });
-        document.getElementById('itemDatalist').innerHTML = prodDataListHTML;
-        document.getElementById('itemDBList').innerHTML = prodUIHTML;
+        document.getElementById('itemDatalist').innerHTML = prodDataListHTML; document.getElementById('itemDBList').innerHTML = prodUIHTML;
     }
 
     function editCustomerDB(index) {
         let cust = customersDB[index];
-        document.getElementById('dbCustName').value = cust.name;
-        document.getElementById('dbCustAddress').value = cust.address;
-        
+        document.getElementById('dbCustName').value = cust.name; document.getElementById('dbCustAddress').value = cust.address;
         editingDbCustIndex = index;
         let btn = document.querySelector('#dbTab .control-group:nth-child(1) .btn-add');
-        btn.innerHTML = "✓ Update Customer";
-        btn.style.background = "var(--secondary)";
-        btn.style.color = "var(--white)";
+        btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
     }
 
     function editItemDB(index) {
         let item = productsDB[index];
-        document.getElementById('dbItemName').value = item.name;
-        document.getElementById('dbItemDesc').value = item.desc;
-        document.getElementById('dbItemPrice').value = item.price;
-        
+        document.getElementById('dbItemName').value = item.name; document.getElementById('dbItemDesc').value = item.desc; document.getElementById('dbItemPrice').value = item.price;
         editingDbItemIndex = index;
         let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add');
-        btn.innerHTML = "✓ Update Item";
-        btn.style.background = "var(--secondary)";
-        btn.style.color = "var(--white)";
-    }
-
-    function deleteCustomerDB(index) {
-        let activeBiz = document.getElementById('profileSelect').value;
-        customersDB.splice(index, 1);
-        localStorage.setItem('invoice_customers_db_' + activeBiz, JSON.stringify(customersDB));
-        renderDBLists();
-    }
-
-    function saveCustomerDB() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        let name = document.getElementById('dbCustName').value.trim();
-        let address = document.getElementById('dbCustAddress').value.trim();
-        if(!name) return showAlertModal("Error", "Customer Name is required to save.");
-        
-        if (editingDbCustIndex !== -1) {
-            customersDB[editingDbCustIndex] = {name, address};
-            editingDbCustIndex = -1;
-            let btn = document.querySelector('#dbTab .control-group:nth-child(1) .btn-add');
-            btn.innerHTML = "+ Save Customer";
-            btn.style.background = "var(--white)";
-            btn.style.color = "var(--primary)";
-        } else {
-            let existingIndex = customersDB.findIndex(c => c.name === name);
-            if(existingIndex !== -1) customersDB[existingIndex] = {name, address};
-            else customersDB.push({name, address});
-        }
-        
-        localStorage.setItem('invoice_customers_db_' + activeBiz, JSON.stringify(customersDB));
-        document.getElementById('dbCustName').value = '';
-        document.getElementById('dbCustAddress').value = '';
-        renderDBLists();
-    }
-
-    function saveItemDB() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        let name = document.getElementById('dbItemName').value.trim();
-        let desc = document.getElementById('dbItemDesc').value.trim();
-        let price = parseFloat(document.getElementById('dbItemPrice').value) || 0;
-        if(!name) return showAlertModal("Error", "Item Name is required to save.");
-
-        if (editingDbItemIndex !== -1) {
-            productsDB[editingDbItemIndex] = {name, desc, price};
-            editingDbItemIndex = -1;
-            let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add');
-            btn.innerHTML = "+ Save Item";
-            btn.style.background = "var(--white)";
-            btn.style.color = "var(--primary)";
-        } else {
-            let existingIndex = productsDB.findIndex(p => p.name === name);
-            if(existingIndex !== -1) productsDB[existingIndex] = {name, desc, price};
-            else productsDB.push({name, desc, price});
-        }
-
-        localStorage.setItem('invoice_products_db_' + activeBiz, JSON.stringify(productsDB));
-        document.getElementById('dbItemName').value = '';
-        document.getElementById('dbItemDesc').value = '';
-        document.getElementById('dbItemPrice').value = '';
-        renderDBLists();
-    }
-
-    function deleteItemDB(index) {
-        let activeBiz = document.getElementById('profileSelect').value;
-        productsDB.splice(index, 1);
-        localStorage.setItem('invoice_products_db_' + activeBiz, JSON.stringify(productsDB));
-        renderDBLists();
+        btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
     }
 
     function autoFillCustomer() {
         let currentName = document.getElementById('custName').value;
         let match = customersDB.find(c => c.name === currentName);
-        if(match) {
-            document.getElementById('custAddress').value = match.address;
-        }
+        if(match) document.getElementById('custAddress').value = match.address;
     }
 
     function autoFillItem() {
         let currentName = document.getElementById('itemName').value;
         let match = productsDB.find(p => p.name === currentName);
-        if(match) {
-            document.getElementById('itemPrice').value = match.price;
-            if(match.desc) document.getElementById('itemDesc').value = match.desc;
-        }
-    }
-
-    // --- MAIN APP FUNCTIONS ---
-    function loadProfile() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        if (!activeBiz) return; // Prevent errors if no profile exists yet
-        
-        let savedData = localStorage.getItem('invoice_profile_' + activeBiz);
-        // Fallback to defaults or a totally blank profile template
-        let profile = savedData ? JSON.parse(savedData) : (defaultProfilesSettings[activeBiz] || {
-            compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic"
-        });
-
-        document.getElementById('compName').value = profile.compName || '';
-        document.getElementById('compAddress').value = profile.compAddress || '';
-        document.getElementById('primaryColor').value = profile.primaryColor || '#0f172a';
-        document.getElementById('secondaryColor').value = profile.secondaryColor || '#3b82f6';
-        document.getElementById('logoSize').value = profile.logoSize || 140;
-        document.getElementById('sigSize').value = profile.sigSize || 120;
-        document.getElementById('sigType').value = profile.sigType || 'upload';
-        
-        document.getElementById('bankName').value = profile.bankName || '';
-        document.getElementById('accName').value = profile.accName || '';
-        document.getElementById('accNo').value = profile.accNo || '';
-        document.getElementById('bankBranch').value = profile.bankBranch || '';
-        
-        document.getElementById('note1Heading').value = profile.note1Heading !== undefined ? profile.note1Heading : 'Notes';
-        document.getElementById('notes').value = profile.notes || '';
-        document.getElementById('note2Heading').value = profile.note2Heading !== undefined ? profile.note2Heading : 'Terms & Conditions';
-        document.getElementById('note2Text').value = profile.note2Text || '';
-
-        if(profile.logoBase64) {
-            document.getElementById('logoPreview').src = profile.logoBase64;
-            document.getElementById('logoPreview').style.display = 'block';
-            document.getElementById('logoTextFallback').style.display = 'none';
-        } else {
-            document.getElementById('logoPreview').style.display = 'none';
-            document.getElementById('logoTextFallback').style.display = 'block';
-        }
-
-        if(profile.bankLogoBase64) {
-            document.getElementById('bankLogoPreview').src = profile.bankLogoBase64;
-            document.getElementById('bankLogoPreview').style.display = 'block';
-            document.getElementById('bankLogoFallback').style.display = 'none';
-        } else {
-            document.getElementById('bankLogoPreview').style.display = 'none';
-            document.getElementById('bankLogoFallback').style.display = 'block';
-        }
-
-        if(profile.sigBase64) {
-            document.getElementById('sigPreview').src = profile.sigBase64;
-            document.getElementById('sigPreview').style.display = 'block';
-        } else {
-            document.getElementById('sigPreview').style.display = 'none';
-        }
-
-        updateTheme();
-        updateSignatureDisplay();
-
-        // Reset edit tracking when changing profile
-        originalDocNo = null;
-
-        customersDB = JSON.parse(localStorage.getItem('invoice_customers_db_' + activeBiz)) || [];
-        productsDB = JSON.parse(localStorage.getItem('invoice_products_db_' + activeBiz)) || [];
-        docHistory = JSON.parse(localStorage.getItem('invoice_history_' + activeBiz)) || [];
-        
-        renderDBLists();
-        renderHistory();
-
-        // Automatically set the correct next number based on newly loaded history
-        handleDocTypeChange();
-    }
-
-    function saveProfile() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        
-        let profileToSave = {
-            compName: document.getElementById('compName').value,
-            compAddress: document.getElementById('compAddress').value,
-            primaryColor: document.getElementById('primaryColor').value,
-            secondaryColor: document.getElementById('secondaryColor').value,
-            logoSize: document.getElementById('logoSize').value,
-            sigSize: document.getElementById('sigSize').value,
-            sigType: document.getElementById('sigType').value,
-            bankName: document.getElementById('bankName').value,
-            accName: document.getElementById('accName').value,
-            accNo: document.getElementById('accNo').value,
-            bankBranch: document.getElementById('bankBranch').value,
-            note1Heading: document.getElementById('note1Heading').value,
-            notes: document.getElementById('notes').value,
-            note2Heading: document.getElementById('note2Heading').value,
-            note2Text: document.getElementById('note2Text').value,
-            
-            logoBase64: document.getElementById('logoPreview').style.display === 'block' ? document.getElementById('logoPreview').src : null,
-            bankLogoBase64: document.getElementById('bankLogoPreview').style.display === 'block' ? document.getElementById('bankLogoPreview').src : null,
-            sigBase64: document.getElementById('sigPreview').style.display === 'block' ? document.getElementById('sigPreview').src : null
-        };
-
-        try {
-            localStorage.setItem('invoice_profile_' + activeBiz, JSON.stringify(profileToSave));
-            showAlertModal("Success", "Settings Saved Successfully for this profile!");
-        } catch (e) {
-            showAlertModal("Error", "Error saving profile. Images might be too large.");
-        }
+        if(match) { document.getElementById('itemPrice').value = match.price; if(match.desc) document.getElementById('itemDesc').value = match.desc; }
     }
 
     function switchTab(tabId, btn) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        btn.classList.add('active');
+        document.getElementById(tabId).classList.add('active'); btn.classList.add('active');
     }
 
     function updateTheme() {
         let pColor = document.getElementById('primaryColor').value;
         let sColor = document.getElementById('secondaryColor').value;
-        
-        let r = parseInt(pColor.slice(1, 3), 16);
-        let g = parseInt(pColor.slice(3, 5), 16);
-        let b = parseInt(pColor.slice(5, 7), 16);
-        
-        let rowLightBg = `rgba(${r}, ${g}, ${b}, 0.03)`; 
-        let fadeBg = `rgba(${r}, ${g}, ${b}, 0.05)`;     
-
+        let r = parseInt(pColor.slice(1, 3), 16), g = parseInt(pColor.slice(3, 5), 16), b = parseInt(pColor.slice(5, 7), 16);
         document.documentElement.style.setProperty('--primary', pColor);
         document.documentElement.style.setProperty('--secondary', sColor);
-        document.documentElement.style.setProperty('--row-alt-bg', rowLightBg);
-        document.documentElement.style.setProperty('--theme-fade', fadeBg);
+        document.documentElement.style.setProperty('--row-alt-bg', `rgba(${r}, ${g}, ${b}, 0.03)`);
+        document.documentElement.style.setProperty('--theme-fade', `rgba(${r}, ${g}, ${b}, 0.05)`);
         document.documentElement.style.setProperty('--logo-width', document.getElementById('logoSize').value + 'px');
         document.documentElement.style.setProperty('--sign-width', document.getElementById('sigSize').value + 'px');
     }
 
     function updateSignatureDisplay() {
-        let type = document.getElementById('sigType').value;
-        if (type === 'electronic') {
+        if (document.getElementById('sigType').value === 'electronic') {
             document.getElementById('sigUploadControls').style.display = 'none';
             document.getElementById('sigAreaImage').style.display = 'none';
             document.getElementById('sigAreaText').style.display = 'block';
@@ -1267,9 +1088,7 @@
     function loadFile(event, previewId, fallbackId = null) {
         let reader = new FileReader();
         reader.onload = function() {
-            let output = document.getElementById(previewId);
-            output.src = reader.result;
-            output.style.display = 'block';
+            let output = document.getElementById(previewId); output.src = reader.result; output.style.display = 'block';
             if(fallbackId) document.getElementById(fallbackId).style.display = 'none';
         };
         if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
@@ -1280,38 +1099,24 @@
 
     function handleDocTypeChange() {
         let type = document.getElementById('docType').value;
-        let noInput = document.getElementById('docNo');
-        
-        // Auto fetch the next number ONLY if we are NOT in edit mode
-        if (!originalDocNo) {
-            noInput.value = getNextDocNo(type);
-        }
-
+        if (!originalDocNo) document.getElementById('docNo').value = getNextDocNo(type);
         if(type === 'QUOTATION') {
-            document.getElementById('validDateControl').style.display = 'block';
-            document.getElementById('displayValidDateArea').style.display = 'block'; 
-            
-            // Re-trigger date calculation just in case
+            document.getElementById('validDateControl').style.display = 'block'; document.getElementById('displayValidDateArea').style.display = 'block'; 
             handleDocDateChange();
         } else {
-            document.getElementById('validDateControl').style.display = 'none';
-            document.getElementById('displayValidDateArea').style.display = 'none'; 
+            document.getElementById('validDateControl').style.display = 'none'; document.getElementById('displayValidDateArea').style.display = 'none'; 
         }
         updateView();
     }
 
     function formatDate(dateStr) {
         if(!dateStr) return '';
-        const options = { year: 'numeric', month: 'short', day: '2-digit' };
-        return new Date(dateStr).toLocaleDateString('en-GB', options);
+        return new Date(dateStr).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' });
     }
 
     function updateView() {
         document.getElementById('displayDocType').innerText = document.getElementById('docType').value;
-        
-        let docNum = document.getElementById('docNo').value;
-        document.getElementById('displayDocNo').innerText = docNum;
-        
+        document.getElementById('displayDocNo').innerText = document.getElementById('docNo').value;
         document.getElementById('displayDate').innerText = formatDate(document.getElementById('docDate').value);
         document.getElementById('displayValidDate').innerText = formatDate(document.getElementById('validDate').value);
         
@@ -1324,214 +1129,115 @@
         document.getElementById('displayCustName').innerText = custName || 'Customer Name';
         document.getElementById('displayCustAddress').innerText = document.getElementById('custAddress').value;
         
-        let n1Heading = document.getElementById('note1Heading').value || 'Notes';
         let n1Text = document.getElementById('notes').value;
-        document.getElementById('dispNote1Heading').innerText = n1Heading;
+        document.getElementById('dispNote1Heading').innerText = document.getElementById('note1Heading').value || 'Notes';
         document.getElementById('displayNotes').innerText = n1Text;
         document.getElementById('notesAreaContainer1').style.display = n1Text.trim() ? 'block' : 'none';
 
-        let n2Heading = document.getElementById('note2Heading').value || 'Terms & Conditions';
         let n2Text = document.getElementById('note2Text').value;
-        document.getElementById('dispNote2Heading').innerText = n2Heading;
+        document.getElementById('dispNote2Heading').innerText = document.getElementById('note2Heading').value || 'Terms & Conditions';
         document.getElementById('displayNote2Text').innerText = n2Text;
         document.getElementById('notesAreaContainer2').style.display = n2Text.trim() ? 'block' : 'none';
 
-        let showBank = document.getElementById('showBank').checked;
-        if(showBank) {
+        if(document.getElementById('showBank').checked) {
             document.getElementById('bankDisplayBox').style.display = 'flex';
             document.getElementById('dispBankName').innerText = document.getElementById('bankName').value || '-';
             document.getElementById('dispAccName').innerText = document.getElementById('accName').value || '-';
             document.getElementById('dispAccNo').innerText = document.getElementById('accNo').value || '-';
             document.getElementById('dispBranch').innerText = document.getElementById('bankBranch').value || '-';
-        } else {
-            document.getElementById('bankDisplayBox').style.display = 'none';
-        }
+        } else { document.getElementById('bankDisplayBox').style.display = 'none'; }
 
-        let finalCustName = custName ? custName : 'Customer';
-        let finalDocNum = docNum ? docNum : 'Invoice';
-        
-        document.title = `${finalCustName} - ${finalDocNum}`;
+        document.title = `${custName ? custName : 'Customer'} - ${document.getElementById('docNo').value ? document.getElementById('docNo').value : 'Invoice'}`;
     }
 
     function handleWarrantyChange() {
-        let val = document.getElementById('itemWarrantySelect').value;
-        if(val === 'custom') {
-            document.getElementById('itemWarrantyCustom').style.display = 'block';
-        } else {
-            document.getElementById('itemWarrantyCustom').style.display = 'none';
-        }
+        document.getElementById('itemWarrantyCustom').style.display = document.getElementById('itemWarrantySelect').value === 'custom' ? 'block' : 'none';
     }
 
     function editItem(index) {
         let item = itemsList[index];
-        
-        document.getElementById('itemName').value = item.name;
-        document.getElementById('itemDesc').value = item.desc;
-        document.getElementById('itemPrice').value = item.price;
-        document.getElementById('itemDiscount').value = item.discount || '';
+        document.getElementById('itemName').value = item.name; document.getElementById('itemDesc').value = item.desc;
+        document.getElementById('itemPrice').value = item.price; document.getElementById('itemDiscount').value = item.discount || '';
         document.getElementById('itemQty').value = item.qty;
 
-        let wSelect = document.getElementById('itemWarrantySelect');
-        let wCustom = document.getElementById('itemWarrantyCustom');
+        let wSelect = document.getElementById('itemWarrantySelect'); let wCustom = document.getElementById('itemWarrantyCustom');
         let predefined = ["1 Year Warranty", "2 Years Warranty", "3 Years Warranty", "6 Months Warranty", "3 Months Warranty"];
         
-        if (!item.warranty || item.warranty === "") {
-            wSelect.value = "none";
-            wCustom.style.display = "none";
-        } else if (predefined.includes(item.warranty)) {
-            wSelect.value = item.warranty;
-            wCustom.style.display = "none";
-        } else {
-            wSelect.value = "custom";
-            wCustom.style.display = "block";
-            wCustom.value = item.warranty;
-        }
+        if (!item.warranty || item.warranty === "") { wSelect.value = "none"; wCustom.style.display = "none"; } 
+        else if (predefined.includes(item.warranty)) { wSelect.value = item.warranty; wCustom.style.display = "none"; } 
+        else { wSelect.value = "custom"; wCustom.style.display = "block"; wCustom.value = item.warranty; }
 
         editingIndex = index;
-        
         let btn = document.getElementById('itemActionBtn');
-        btn.innerHTML = "✓ Update Item";
-        btn.style.background = "var(--secondary)";
-        btn.style.color = "var(--white)";
+        btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
         document.getElementById('itemEntryTitle').innerText = "Edit Item";
-        
-        document.getElementById('itemInputBox').style.borderColor = "var(--secondary)";
-        document.getElementById('itemInputBox').style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
-
+        document.getElementById('itemInputBox').style.borderColor = "var(--secondary)"; document.getElementById('itemInputBox').style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
         switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
     }
 
     function resetItemForm() {
-        document.getElementById('itemName').value = '';
-        document.getElementById('itemDesc').value = '';
-        document.getElementById('itemPrice').value = '';
-        document.getElementById('itemDiscount').value = '';
-        document.getElementById('itemQty').value = '1';
-        
+        document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = '';
+        document.getElementById('itemPrice').value = ''; document.getElementById('itemDiscount').value = ''; document.getElementById('itemQty').value = '1';
         editingIndex = -1;
-        
-        let btn = document.getElementById('itemActionBtn');
-        btn.innerHTML = "+ Add to List";
-        btn.style.background = "var(--white)";
-        btn.style.color = "var(--primary)";
+        let btn = document.getElementById('itemActionBtn'); btn.innerHTML = "+ Add to List"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
         document.getElementById('itemEntryTitle').innerText = "Add Item";
-        
-        document.getElementById('itemInputBox').style.borderColor = "var(--border)";
-        document.getElementById('itemInputBox').style.boxShadow = "none";
+        document.getElementById('itemInputBox').style.borderColor = "var(--border)"; document.getElementById('itemInputBox').style.boxShadow = "none";
     }
 
     function handleItemAction() {
-        let name = document.getElementById('itemName').value;
-        let desc = document.getElementById('itemDesc').value;
-        let price = parseFloat(document.getElementById('itemPrice').value) || 0;
-        let discount = parseFloat(document.getElementById('itemDiscount').value) || 0;
-        let qty = parseFloat(document.getElementById('itemQty').value) || 1;
-
+        let name = document.getElementById('itemName').value; let desc = document.getElementById('itemDesc').value;
+        let price = parseFloat(document.getElementById('itemPrice').value) || 0; let discount = parseFloat(document.getElementById('itemDiscount').value) || 0; let qty = parseFloat(document.getElementById('itemQty').value) || 1;
         if (name.trim() === "" || price === 0) return showAlertModal("Missing Info", "කරුණාකර Item Name සහ Price ඇතුලත් කරන්න!");
         if (discount > price) return showAlertModal("Invalid Discount", "Discount එක භාණ්ඩයේ මිලට වඩා වැඩි විය නොහැක!");
 
         let wSelect = document.getElementById('itemWarrantySelect').value;
-        let warranty = '';
-        if (wSelect === 'custom') {
-            warranty = document.getElementById('itemWarrantyCustom').value;
-        } else if (wSelect !== 'none') {
-            warranty = wSelect;
-        }
-
+        let warranty = wSelect === 'custom' ? document.getElementById('itemWarrantyCustom').value : (wSelect !== 'none' ? wSelect : '');
         let newItem = { name, desc, warranty, price, discount, qty };
 
-        if (editingIndex === -1) {
-            itemsList.push(newItem);
-        } else {
-            itemsList[editingIndex] = newItem;
-        }
-
-        resetItemForm();
-        renderTable();
+        if (editingIndex === -1) itemsList.push(newItem); else itemsList[editingIndex] = newItem;
+        resetItemForm(); renderTable();
     }
 
     function deleteItem(index) {
         itemsList.splice(index, 1);
-        
-        if (editingIndex === index) {
-            resetItemForm();
-        } else if (editingIndex > index) {
-            editingIndex--; 
-        }
-        
+        if (editingIndex === index) resetItemForm(); else if (editingIndex > index) editingIndex--; 
         renderTable();
     }
 
-    function formatMoney(amount) {
-        return amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    }
+    function formatMoney(amount) { return amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'); }
 
     function renderTable() {
         let hasDiscount = itemsList.some(item => item.discount > 0);
-        
-        let theadHTML = `
-            <tr>
-                <th style="width: ${hasDiscount ? '40%' : '50%'};">Description</th>
-                <th class="text-center" style="width: 10%;">Qty</th>
-                <th class="text-right" style="width: 15%;">Rate</th>
-                ${hasDiscount ? '<th class="text-right" style="width: 15%;">Disc.</th>' : ''}
-                <th class="text-right total-col" style="width: 20%;">Total</th>
-                <th class="action-col"></th>
-            </tr>
-        `;
-        document.getElementById('tableHead').innerHTML = theadHTML;
+        document.getElementById('tableHead').innerHTML = `<tr>
+            <th style="width: ${hasDiscount ? '40%' : '50%'};">Description</th><th class="text-center" style="width: 10%;">Qty</th><th class="text-right" style="width: 15%;">Rate</th>
+            ${hasDiscount ? '<th class="text-right" style="width: 15%;">Disc.</th>' : ''}
+            <th class="text-right total-col" style="width: 20%;">Total</th><th class="action-col"></th>
+        </tr>`;
 
-        let tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        
-        let grossTotal = 0;
-        let totalDiscount = 0;
+        let tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
+        let grossTotal = 0, totalDiscount = 0;
 
         itemsList.forEach((item, index) => {
-            let itemGross = item.price * item.qty;
-            let itemDiscTotal = item.discount * item.qty;
-            let itemNet = itemGross - itemDiscTotal;
+            let itemGross = item.price * item.qty, itemDiscTotal = item.discount * item.qty, itemNet = itemGross - itemDiscTotal;
+            grossTotal += itemGross; totalDiscount += itemDiscTotal;
             
-            grossTotal += itemGross;
-            totalDiscount += itemDiscTotal;
-
-            let wBadge = item.warranty ? `<div class="warranty-badge">${item.warranty}</div>` : '';
-            let dCell = hasDiscount ? `<td class="text-right">${item.discount > 0 ? formatMoney(item.discount) : '-'}</td>` : '';
-            
-            let row = `<tr>
-                <td>
-                    <span class="item-main">${item.name}</span>
-                    ${item.desc ? `<span class="item-sub">${item.desc}</span>` : ''}
-                    ${wBadge}
-                </td>
-                <td class="text-center">${item.qty}</td>
-                <td class="text-right">${formatMoney(item.price)}</td>
-                ${dCell}
+            tbody.innerHTML += `<tr>
+                <td><span class="item-main">${item.name}</span>${item.desc ? `<span class="item-sub">${item.desc}</span>` : ''}${item.warranty ? `<div class="warranty-badge">${item.warranty}</div>` : ''}</td>
+                <td class="text-center">${item.qty}</td><td class="text-right">${formatMoney(item.price)}</td>
+                ${hasDiscount ? `<td class="text-right">${item.discount > 0 ? formatMoney(item.discount) : '-'}</td>` : ''}
                 <td class="text-right" style="font-weight:600; color:var(--text-main);">${formatMoney(itemNet)}</td>
-                <td class="action-col">
-                    <button class="edit-btn" onclick="editItem(${index})" title="Edit Item">✏️</button>
-                    <button class="del-btn" onclick="deleteItem(${index})" title="Delete Item">✖</button>
-                </td>
+                <td class="action-col"><button class="edit-btn" onclick="editItem(${index})">✏️</button><button class="del-btn" onclick="deleteItem(${index})">✖</button></td>
             </tr>`;
-            tbody.innerHTML += row;
         });
 
         document.getElementById('subTotal').innerText = 'LKR ' + formatMoney(grossTotal);
-        
-        if (totalDiscount > 0) {
-            document.getElementById('discountRow').style.display = 'flex';
-            document.getElementById('totalDiscountAmt').innerText = '- LKR ' + formatMoney(totalDiscount);
-        } else {
-            document.getElementById('discountRow').style.display = 'none';
-        }
-
-        let netFinal = grossTotal - totalDiscount;
-        document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(netFinal);
+        document.getElementById('discountRow').style.display = totalDiscount > 0 ? 'flex' : 'none';
+        if (totalDiscount > 0) document.getElementById('totalDiscountAmt').innerText = '- LKR ' + formatMoney(totalDiscount);
+        document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(grossTotal - totalDiscount);
     }
 
     document.addEventListener("DOMContentLoaded", initApp);
     if (document.readyState === "complete" || document.readyState === "interactive") initApp();
-
 </script>
 
 </body>
