@@ -272,7 +272,7 @@
 
             <div class="control-group">
                 <h3>Customer (Bill To)</h3>
-                <input type="text" id="custName" list="custDatalist" placeholder="Search or Type Customer Name" oninput="autoFillCustomer(); updateView()">
+                <input type="text" id="custName" list="custDatalist" autocomplete="off" placeholder="Search or Type Customer Name" oninput="autoFillCustomer(); updateView()">
                 <datalist id="custDatalist"></datalist>
                 <textarea id="custAddress" placeholder="Customer Address & Contact..." oninput="updateView()"></textarea>
             </div>
@@ -280,7 +280,7 @@
             <div class="control-group item-entry-box" id="itemInputBox">
                 <h3 style="color: var(--primary);" id="itemEntryTitle">Add Item</h3>
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <input type="text" id="itemName" list="itemDatalist" placeholder="Search or Type Item Name" style="flex: 2; margin-bottom: 0;" oninput="autoFillItem()">
+                    <input type="text" id="itemName" list="itemDatalist" autocomplete="off" placeholder="Search or Type Item Name" style="flex: 2; margin-bottom: 0;" oninput="autoFillItem()">
                     <datalist id="itemDatalist"></datalist>
                     
                     <select id="itemWarrantySelect" onchange="handleWarrantyChange()" style="flex: 1; margin-bottom: 0;">
@@ -512,7 +512,7 @@
 
 <script>
     // ==========================================
-    // 1. FIREBASE CONFIGURATION - ඔයාගේ Config එක මෙතනට දාන්න
+    // 1. FIREBASE CONFIGURATION
     // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyA8u7LCWwP_BNobXKdWh2qWcoaLgx50XB4",
@@ -564,7 +564,7 @@
             } else if(profileList.length > 0) {
                 document.getElementById('profileSelect').value = profileList[0].id;
             }
-            loadProfile(); // Load active profile details
+            loadProfile(); 
         });
 
         document.getElementById('docDate').valueAsDate = new Date();
@@ -577,7 +577,6 @@
         let activeBiz = document.getElementById('profileSelect').value;
         if (!activeBiz) return; 
 
-        // Turn off old listeners when switching profiles
         if (currentBizListenerRef) {
             db.ref('profiles/' + currentBizListenerRef).off();
             db.ref('customers/' + currentBizListenerRef).off();
@@ -585,9 +584,8 @@
             db.ref('history/' + currentBizListenerRef).off();
         }
         currentBizListenerRef = activeBiz;
-        originalDocNo = null; // Reset editor
+        originalDocNo = null; 
 
-        // Listen for Settings changes
         db.ref('profiles/' + activeBiz).on('value', (snap) => {
             let profile = snap.val() || { compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic" };
             
@@ -639,13 +637,12 @@
             updateView();
         });
 
-        // Listen for DB and History changes
         db.ref('customers/' + activeBiz).on('value', snap => { customersDB = snap.val() || []; renderDBLists(); });
         db.ref('products/' + activeBiz).on('value', snap => { productsDB = snap.val() || []; renderDBLists(); });
         db.ref('history/' + activeBiz).on('value', snap => { 
             docHistory = snap.val() || []; 
             renderHistory();
-            if (!originalDocNo) handleDocTypeChange(); // Update doc number automatically
+            if (!originalDocNo) handleDocTypeChange(); 
         });
     }
 
@@ -687,7 +684,6 @@
         let newId = "biz_" + new Date().getTime();
         profileList.push({ id: newId, name: name.trim() });
         
-        // Save to Firebase
         db.ref('global/profileList').set(profileList).then(() => {
             document.getElementById('profileSelect').value = newId;
             loadProfile();
@@ -715,7 +711,6 @@
             profileList = profileList.filter(p => p.id !== activeId);
             db.ref('global/profileList').set(profileList);
             
-            // Delete data paths
             db.ref('profiles/' + activeId).remove();
             db.ref('customers/' + activeId).remove();
             db.ref('products/' + activeId).remove();
@@ -823,7 +818,7 @@
     }
 
     // ==========================================
-    // 5. REMAINING UI FUNCTIONS (Unchanged logic)
+    // 5. REMAINING UI FUNCTIONS
     // ==========================================
     function renderProfileDropdown() {
         let select = document.getElementById('profileSelect');
@@ -907,6 +902,7 @@
         renderTable();
     }
 
+    // FIXED: Window event listener added to wait for the print dialog to finish before resetting the UI.
     function initiatePrintAndSave() {
         let docNo = document.getElementById('docNo').value.trim();
         if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
@@ -922,11 +918,18 @@
         
         showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
             saveToHistory();
+            
+            // Wait until the print dialog is closed before generating the next blank form
+            let afterPrint = function() {
+                originalDocNo = null; 
+                resetInvoiceForm();
+                handleDocTypeChange(); 
+                updateView();
+                window.removeEventListener('afterprint', afterPrint);
+            };
+            window.addEventListener('afterprint', afterPrint);
+            
             window.print();
-            originalDocNo = null; 
-            resetInvoiceForm();
-            handleDocTypeChange(); 
-            updateView();
         });
     }
 
@@ -998,13 +1001,14 @@
         renderHistory();
     }
 
+    // FIXED: Properly added text inside <option> tags so mobile browsers render them correctly.
     function renderDBLists() {
         let custSearchTerm = (document.getElementById('searchCustDB')?.value || '').toLowerCase();
         let itemSearchTerm = (document.getElementById('searchItemDB')?.value || '').toLowerCase();
 
         let custDataListHTML = ''; let custUIHTML = '';
         customersDB.forEach((c, index) => {
-            custDataListHTML += `<option value="${c.name}">`;
+            custDataListHTML += `<option value="${c.name}">${c.name}</option>`;
             if (c.name.toLowerCase().includes(custSearchTerm) || c.address.toLowerCase().includes(custSearchTerm)) {
                 custUIHTML += `<div class="db-list-item">
                     <div><strong style="color:var(--primary);">${c.name}</strong><br><span style="color:var(--text-muted);">${c.address}</span></div>
@@ -1012,11 +1016,12 @@
                 </div>`;
             }
         });
-        document.getElementById('custDatalist').innerHTML = custDataListHTML; document.getElementById('customerDBList').innerHTML = custUIHTML;
+        document.getElementById('custDatalist').innerHTML = custDataListHTML; 
+        document.getElementById('customerDBList').innerHTML = custUIHTML;
 
         let prodDataListHTML = ''; let prodUIHTML = '';
         productsDB.forEach((p, index) => {
-            prodDataListHTML += `<option value="${p.name}">`;
+            prodDataListHTML += `<option value="${p.name}">${p.name}</option>`;
             if (p.name.toLowerCase().includes(itemSearchTerm) || (p.desc && p.desc.toLowerCase().includes(itemSearchTerm))) {
                 prodUIHTML += `<div class="db-list-item">
                     <div><strong style="color:var(--primary);">${p.name}</strong><br><span style="color:var(--secondary); font-weight:700;">LKR ${formatMoney(p.price)}</span></div>
@@ -1024,7 +1029,8 @@
                 </div>`;
             }
         });
-        document.getElementById('itemDatalist').innerHTML = prodDataListHTML; document.getElementById('itemDBList').innerHTML = prodUIHTML;
+        document.getElementById('itemDatalist').innerHTML = prodDataListHTML; 
+        document.getElementById('itemDBList').innerHTML = prodUIHTML;
     }
 
     function editCustomerDB(index) {
