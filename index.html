@@ -255,6 +255,9 @@
             .bottom-section { page-break-inside: avoid; }
             #notesAreaContainer1, #notesAreaContainer2 { page-break-inside: avoid; }
             
+            /* Hide modal overlay during print to avoid blanking issues on setting change */
+            .modal-overlay { display: none !important; }
+            
             @page { margin: 5mm; }
         }
     </style>
@@ -659,16 +662,15 @@
     }
 
     function handleForgotPassword() {
-        // Since frontend JS cannot securely send emails without exposing keys,
-        // we use a mailto link as a fallback solution for password recovery.
         let subject = encodeURIComponent("Invoice System - Password Recovery Request");
         let body = encodeURIComponent("Please provide my login details. My system has locked me out.");
         window.location.href = `mailto:ashendulanja075@gmail.com?subject=${subject}&body=${body}`;
         
-        // Secondary backup: Show it in a prompt locally if they just forgot it but have access to this device.
-        let pin = prompt("Please enter recovery PIN (0000) to view credentials locally:");
-        if(pin === "0000") {
+        let pin = prompt("Please enter recovery PIN to view credentials locally:");
+        if(pin === "200411501558") {
             showAlertModal("Recovery", `Username: ${systemAuth.user}\nPassword: ${systemAuth.pass}`);
+        } else if (pin !== null && pin !== "") {
+            showAlertModal("Error", "Incorrect PIN!");
         }
     }
 
@@ -1152,14 +1154,27 @@
         
         showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
             saveToHistory();
+            
+            // To fix mobile print preview reloading blank page on setting change:
             let afterPrint = function() {
-                originalDocNo = null; 
-                resetInvoiceForm();
-                handleDocTypeChange(); 
-                updateView();
                 window.removeEventListener('afterprint', afterPrint);
+                setTimeout(function() {
+                    showConfirmModal(
+                        "Action Completed", 
+                        "Document has been saved and printed. Do you want to clear the form and start a NEW document?", 
+                        "Yes, Start New", 
+                        "modal-btn-confirm", 
+                        function() {
+                            originalDocNo = null; 
+                            resetInvoiceForm();
+                            handleDocTypeChange(); 
+                            updateView();
+                        }
+                    );
+                }, 800);
             };
             window.addEventListener('afterprint', afterPrint);
+            
             window.print();
         });
     }
@@ -1451,7 +1466,7 @@
         document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(grossTotal - totalDiscount);
     }
 
-    document.addEventListener("DOMContentLoaded", initAuth); // Start with Auth instead of initApp
+    document.addEventListener("DOMContentLoaded", initAuth); 
 </script>
 
 </body>
