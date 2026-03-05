@@ -9,8 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
@@ -578,20 +577,45 @@
 
 <script>
     // ==========================================
-    // 1. FIREBASE CONFIGURATION
+    // 1. SUPABASE CONFIGURATION 
     // ==========================================
-    const firebaseConfig = {
-        apiKey: "AIzaSyA8u7LCWwP_BNobXKdWh2qWcoaLgx50XB4",
-        authDomain: "my-biling-system-database.firebaseapp.com",
-        databaseURL: "https://my-biling-system-database-default-rtdb.firebaseio.com",
-        projectId: "my-biling-system-database",
-        storageBucket: "my-biling-system-database.firebasestorage.app",
-        messagingSenderId: "364978658217",
-        appId: "1:364978658217:web:c0848529f5382b419842b8"
-    };
+    // මෙතනට ඔයාගේ Supabase Project එකේ URL එක සහ Anon Key එක දාන්න
+    const supabaseUrl = 'https://gseawgjmvcpaxgnqsxry.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZWF3Z2ptdmNwYXhnbnFzeHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MjM5NzEsImV4cCI6MjA4NzM5OTk3MX0.u2nbmLNBxvwfbOhb7JtXpTo0Ax6pW0OjjWhQe1VJBNM';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    // ==========================================
+    // SUPABASE "NoSQL-LIKE" WRAPPER (To keep your existing structure working 1:1)
+    // ==========================================
+    let dbListeners = {};
+    let dbCache = {};
+
+    // Listen to changes in the database globally
+    supabase.channel('any_change')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'json_store' }, payload => {
+          let id = payload.new.id;
+          let data = payload.new.data;
+          dbCache[id] = data;
+          if(dbListeners[id]) dbListeners[id](data);
+      })
+      .subscribe();
+
+    // Helper to read data and listen for changes
+    function onDbChange(id, callback) {
+      dbListeners[id] = callback;
+      supabase.from('json_store').select('data').eq('id', id).single().then(({ data }) => {
+          let val = data ? data.data : null;
+          dbCache[id] = val;
+          callback(val);
+      });
+    }
+
+    // Helper to save data
+    async function saveDb(id, data) {
+      dbCache[id] = data; // Update locally right away for speed
+      await supabase.from('json_store').upsert({ id: id, data: data });
+    }
+
 
     // ==========================================
     // 2. APP VARIABLES
@@ -619,16 +643,14 @@
     // 3. AUTHENTICATION LOGIC
     // ==========================================
     function initAuth() {
-        // Fetch credentials from DB or set defaults
-        db.ref('admin/credentials').on('value', snap => {
-            if(snap.exists()) {
-                systemAuth = snap.val();
+        onDbChange('admin/credentials', val => {
+            if(val) {
+                systemAuth = val;
             } else {
-                db.ref('admin/credentials').set(systemAuth); // Set default if DB empty
+                saveDb('admin/credentials', systemAuth); // Set default if DB empty
             }
         });
 
-        // Check LocalStorage for "Remember Me"
         if (localStorage.getItem('invoice_logged_in') === 'true') {
             showApp();
         }
@@ -658,7 +680,7 @@
     function showApp() {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
-        initApp(); // Load data once logged in
+        initApp(); 
     }
 
     function handleForgotPassword() {
@@ -681,7 +703,7 @@
         
         showConfirmModal("Confirm Change", "Are you sure you want to update the login details?", "Update", "modal-btn-confirm", function() {
             systemAuth = { user: u, pass: p };
-            db.ref('admin/credentials').set(systemAuth).then(() => {
+            saveDb('admin/credentials', systemAuth).then(() => {
                 document.getElementById('newUsername').value = '';
                 document.getElementById('newPassword').value = '';
                 showAlertModal("Success", "Login credentials updated successfully.");
@@ -690,7 +712,7 @@
     }
 
     // ==========================================
-    // CUSTOM DROPDOWN LOGIC (Fixing Mobile Issue)
+    // CUSTOM DROPDOWN LOGIC
     // ==========================================
     function filterCustDropdown() {
         let term = document.getElementById('custName').value.toLowerCase();
@@ -738,7 +760,6 @@
         drop.style.display = hasItems ? 'block' : 'none';
     }
 
-    // Hide dropdowns when clicking outside
     document.addEventListener('click', function(e) {
         if (!e.target.closest('#custName') && !e.target.closest('#custCustomDropdown')) {
             document.getElementById('custCustomDropdown').style.display = 'none';
@@ -790,7 +811,6 @@
     function exportToPDF(type) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
         doc.setFontSize(18);
         
         if(type === 'customers') {
@@ -806,13 +826,11 @@
         }
     }
 
-
     // ==========================================
-    // 3. INIT APP & LISTENERS (Realtime Sync)
+    // 3. INIT APP & LISTENERS (Supabase Sync)
     // ==========================================
     function initApp() {
-        db.ref('global/profileList').on('value', (snapshot) => {
-            let data = snapshot.val();
+        onDbChange('global/profileList', (data) => {
             let currentSelection = document.getElementById('profileSelect').value;
             profileList = data ? data : defaultProfileList;
             renderProfileDropdown();
@@ -834,17 +852,18 @@
         let activeBiz = document.getElementById('profileSelect').value;
         if (!activeBiz) return; 
 
-        if (currentBizListenerRef) {
-            db.ref('profiles/' + currentBizListenerRef).off();
-            db.ref('customers/' + currentBizListenerRef).off();
-            db.ref('products/' + currentBizListenerRef).off();
-            db.ref('history/' + currentBizListenerRef).off();
+        // Clear previous listeners when switching profiles
+        if (currentBizListenerRef && currentBizListenerRef !== activeBiz) {
+            delete dbListeners['profiles/' + currentBizListenerRef];
+            delete dbListeners['customers/' + currentBizListenerRef];
+            delete dbListeners['products/' + currentBizListenerRef];
+            delete dbListeners['history/' + currentBizListenerRef];
         }
         currentBizListenerRef = activeBiz;
         originalDocNo = null; 
 
-        db.ref('profiles/' + activeBiz).on('value', (snap) => {
-            let profile = snap.val() || { compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic" };
+        onDbChange('profiles/' + activeBiz, (snap) => {
+            let profile = snap || { compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic" };
             
             document.getElementById('compName').value = profile.compName || '';
             document.getElementById('compAddress').value = profile.compAddress || '';
@@ -894,17 +913,17 @@
             updateView();
         });
 
-        db.ref('customers/' + activeBiz).on('value', snap => { customersDB = snap.val() || []; renderDBLists(); });
-        db.ref('products/' + activeBiz).on('value', snap => { productsDB = snap.val() || []; renderDBLists(); });
-        db.ref('history/' + activeBiz).on('value', snap => { 
-            docHistory = snap.val() || []; 
+        onDbChange('customers/' + activeBiz, snap => { customersDB = snap || []; renderDBLists(); });
+        onDbChange('products/' + activeBiz, snap => { productsDB = snap || []; renderDBLists(); });
+        onDbChange('history/' + activeBiz, snap => { 
+            docHistory = snap || []; 
             renderHistory();
             if (!originalDocNo) handleDocTypeChange(); 
         });
     }
 
     // ==========================================
-    // 4. FIREBASE SAVE FUNCTIONS
+    // 4. SUPABASE SAVE FUNCTIONS
     // ==========================================
     function saveProfile() {
         let activeBiz = document.getElementById('profileSelect').value;
@@ -929,7 +948,7 @@
             sigBase64: document.getElementById('sigPreview').style.display === 'block' ? document.getElementById('sigPreview').src : null
         };
 
-        db.ref('profiles/' + activeBiz).set(profileToSave).then(() => {
+        saveDb('profiles/' + activeBiz, profileToSave).then(() => {
             showAlertModal("Success", "Settings Saved Successfully across all devices!");
         });
     }
@@ -939,7 +958,7 @@
         if (!name || name.trim() === "") return;
         let newId = "biz_" + new Date().getTime();
         profileList.push({ id: newId, name: name.trim() });
-        db.ref('global/profileList').set(profileList).then(() => {
+        saveDb('global/profileList', profileList).then(() => {
             document.getElementById('profileSelect').value = newId;
             loadProfile();
             showAlertModal("Success", `Profile '${name.trim()}' created!`);
@@ -952,7 +971,7 @@
         let newName = prompt("Enter new name for this profile:", profile.name);
         if (!newName || newName.trim() === "") return;
         profile.name = newName.trim();
-        db.ref('global/profileList').set(profileList);
+        saveDb('global/profileList', profileList);
     }
 
     function deleteCurrentProfile() {
@@ -961,11 +980,11 @@
         let profile = profileList.find(p => p.id === activeId);
         showConfirmModal("Delete Profile", `Delete '${profile.name}' permanently from all devices?`, "Yes, Delete", "modal-btn-danger", function() {
             profileList = profileList.filter(p => p.id !== activeId);
-            db.ref('global/profileList').set(profileList);
-            db.ref('profiles/' + activeId).remove();
-            db.ref('customers/' + activeId).remove();
-            db.ref('products/' + activeId).remove();
-            db.ref('history/' + activeId).remove();
+            saveDb('global/profileList', profileList);
+            // Delete actual DB records in Supabase
+            supabase.from('json_store').delete().in('id', [
+                'profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId
+            ]).then();
         });
     }
 
@@ -977,14 +996,14 @@
         if (editingDbCustIndex !== -1) {
             customersDB[editingDbCustIndex] = {name, address};
             editingDbCustIndex = -1;
-            let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); // Adjusted nth-child
+            let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); 
             btn.innerHTML = "+ Save Customer"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
         } else {
             let existingIndex = customersDB.findIndex(c => c.name === name);
             if(existingIndex !== -1) customersDB[existingIndex] = {name, address};
             else customersDB.push({name, address});
         }
-        db.ref('customers/' + activeBiz).set(customersDB);
+        saveDb('customers/' + activeBiz, customersDB);
         document.getElementById('dbCustName').value = '';
         document.getElementById('dbCustAddress').value = '';
     }
@@ -992,7 +1011,7 @@
     function deleteCustomerDB(index) {
         let activeBiz = document.getElementById('profileSelect').value;
         customersDB.splice(index, 1);
-        db.ref('customers/' + activeBiz).set(customersDB);
+        saveDb('customers/' + activeBiz, customersDB);
     }
 
     function saveItemDB() {
@@ -1004,14 +1023,14 @@
         if (editingDbItemIndex !== -1) {
             productsDB[editingDbItemIndex] = {name, desc, price};
             editingDbItemIndex = -1;
-            let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); // Adjusted nth-child
+            let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); 
             btn.innerHTML = "+ Save Item"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
         } else {
             let existingIndex = productsDB.findIndex(p => p.name === name);
             if(existingIndex !== -1) productsDB[existingIndex] = {name, desc, price};
             else productsDB.push({name, desc, price});
         }
-        db.ref('products/' + activeBiz).set(productsDB);
+        saveDb('products/' + activeBiz, productsDB);
         document.getElementById('dbItemName').value = '';
         document.getElementById('dbItemDesc').value = '';
         document.getElementById('dbItemPrice').value = '';
@@ -1020,7 +1039,7 @@
     function deleteItemDB(index) {
         let activeBiz = document.getElementById('profileSelect').value;
         productsDB.splice(index, 1);
-        db.ref('products/' + activeBiz).set(productsDB);
+        saveDb('products/' + activeBiz, productsDB);
     }
 
     function saveToHistory() {
@@ -1042,7 +1061,7 @@
         if (existingIndex >= 0) docHistory[existingIndex] = entry; 
         else docHistory.push(entry); 
 
-        db.ref('history/' + activeBiz).set(docHistory);
+        saveDb('history/' + activeBiz, docHistory);
     }
 
     function deleteHistoryItem(event, docNoToDelete) {
@@ -1050,7 +1069,7 @@
         showConfirmModal("Delete Document", `Permanently delete document ${docNoToDelete}?`, "Delete", "modal-btn-danger", function() {
             let activeBiz = document.getElementById('profileSelect').value;
             docHistory = docHistory.filter(h => h.docNo !== docNoToDelete);
-            db.ref('history/' + activeBiz).set(docHistory);
+            saveDb('history/' + activeBiz, docHistory);
             
             if (originalDocNo === docNoToDelete) {
                 originalDocNo = null; 
@@ -1139,6 +1158,7 @@
         renderTable();
     }
 
+    // FIXED: Form doesn't automatically clear after printing. Wait for user confirmation.
     function initiatePrintAndSave() {
         let docNo = document.getElementById('docNo').value.trim();
         if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
@@ -1155,9 +1175,9 @@
         showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
             saveToHistory();
             
-            // To fix mobile print preview reloading blank page on setting change:
             let afterPrint = function() {
                 window.removeEventListener('afterprint', afterPrint);
+                // Prompt user whether to clear the form or keep it.
                 setTimeout(function() {
                     showConfirmModal(
                         "Action Completed", 
