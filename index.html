@@ -11,9 +11,11 @@
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        /* ඔයාගේ පරණ CSS ටිකමයි මෙතන තියෙන්නේ. වෙනසක් කරලා නෑ */
         :root {
             --primary: #0f172a;       
             --secondary: #3b82f6;     
@@ -29,7 +31,27 @@
         }
 
         body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg-body); margin: 0; padding: 20px; color: var(--text-main); }
-        .app-container { display: flex; gap: 30px; max-width: 1600px; margin: auto; align-items: flex-start; }
+        
+        /* --- LOGIN SCREEN CSS --- */
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .login-box { background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border); }
+        .login-box h2 { color: var(--primary); margin-top: 0; margin-bottom: 25px; font-weight: 800; font-size: 24px; }
+        .login-box input[type="text"], .login-box input[type="password"] { width: 100%; padding: 14px; margin-bottom: 15px; border: 2px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        .login-box input:focus { border-color: var(--secondary); }
+        .login-box .btn { margin-top: 10px; }
+        .login-box .login-options { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 20px; }
+        .login-box .forgot-link { color: var(--secondary); cursor: pointer; font-weight: 600; text-decoration: underline; }
+
+        /* --- CUSTOM DROPDOWN CSS --- */
+        .dropdown-wrapper { position: relative; width: 100%; }
+        .custom-dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto; z-index: 100; display: none; margin-top: 4px; }
+        .custom-dropdown div { padding: 10px 15px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+        .custom-dropdown div:last-child { border-bottom: none; }
+        .custom-dropdown div:hover { background: #eff6ff; color: var(--secondary); font-weight: 600; }
+        .custom-dropdown strong { display: block; font-size: 14px; margin-bottom: 2px; }
+        .custom-dropdown span { font-size: 11px; color: var(--text-muted); }
+
+        .app-container { display: flex; gap: 30px; max-width: 1600px; margin: auto; align-items: flex-start; display: none; /* Hidden until login */ }
         
         .controls { flex: 1.1; background: var(--white); border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); position: sticky; top: 20px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border);}
         
@@ -53,7 +75,7 @@
         .control-group h3 { margin-top: 0; color: var(--primary); font-size: 13px; margin-bottom: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
         
         label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
-        input[type="text"], input[type="number"], input[type="date"], select, textarea { width: 100%; padding: 10px 14px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 13px; color: var(--text-main); transition: all 0.2s; background: #f8fafc;}
+        input[type="text"], input[type="number"], input[type="date"], input[type="password"], select, textarea { width: 100%; padding: 10px 14px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 13px; color: var(--text-main); transition: all 0.2s; background: #f8fafc;}
         input:focus, select:focus, textarea:focus { border-color: var(--secondary); outline: none; background: var(--white); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         textarea { resize: vertical; height: 60px; }
         
@@ -166,7 +188,7 @@
         .hist-badge.quo { background: #fef3c7; color: #d97706; }
 
         /* CUSTOM MODAL CSS */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(2px);}
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(2px);}
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
         .modal-box { background: white; padding: 25px; border-radius: 16px; width: 350px; max-width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: translateY(20px); transition: 0.3s; }
         .modal-overlay.show .modal-box { transform: translateY(0); }
@@ -239,7 +261,24 @@
 </head>
 <body>
 
-<div class="app-container">
+<div id="loginScreen">
+    <div class="login-box">
+        <h2>🔒 System Login</h2>
+        <input type="text" id="loginUser" placeholder="Username">
+        <input type="password" id="loginPass" placeholder="Password">
+        
+        <div class="login-options">
+            <label style="display:flex; align-items:center; gap:5px; margin:0; cursor:pointer;">
+                <input type="checkbox" id="rememberMe" style="width:16px; height:16px; margin:0; accent-color:var(--secondary);"> Remember me
+            </label>
+            <span class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</span>
+        </div>
+        
+        <button class="btn" onclick="attemptLogin()">Login Securely</button>
+    </div>
+</div>
+
+<div class="app-container" id="mainApp">
     <div class="controls">
         <div class="profile-header">
             <select id="profileSelect" onchange="loadProfile()"></select>
@@ -252,6 +291,7 @@
             <button class="tab-btn" onclick="switchTab('dbTab', this)">🗄️ Database</button>
             <button class="tab-btn" onclick="switchTab('bankTab', this)">🏦 Bank</button>
             <button class="tab-btn" onclick="switchTab('settingsTab', this)">🎨 Settings</button>
+            <button class="tab-btn" onclick="logout()" style="color: #ef4444;">🚪 Logout</button>
         </div>
 
         <div id="editorTab" class="tab-content active">
@@ -272,16 +312,20 @@
 
             <div class="control-group">
                 <h3>Customer (Bill To)</h3>
-                <input type="text" id="custName" list="custDatalist" autocomplete="off" placeholder="Search or Type Customer Name" oninput="autoFillCustomer(); updateView()">
-                <datalist id="custDatalist"></datalist>
+                <div class="dropdown-wrapper">
+                    <input type="text" id="custName" autocomplete="off" placeholder="Search or Type Customer Name" oninput="filterCustDropdown(); updateView()" onfocus="filterCustDropdown()">
+                    <div id="custCustomDropdown" class="custom-dropdown"></div>
+                </div>
                 <textarea id="custAddress" placeholder="Customer Address & Contact..." oninput="updateView()"></textarea>
             </div>
 
             <div class="control-group item-entry-box" id="itemInputBox">
                 <h3 style="color: var(--primary);" id="itemEntryTitle">Add Item</h3>
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <input type="text" id="itemName" list="itemDatalist" autocomplete="off" placeholder="Search or Type Item Name" style="flex: 2; margin-bottom: 0;" oninput="autoFillItem()">
-                    <datalist id="itemDatalist"></datalist>
+                    <div class="dropdown-wrapper" style="flex: 2;">
+                        <input type="text" id="itemName" autocomplete="off" placeholder="Search or Type Item Name" style="margin-bottom: 0;" oninput="filterItemDropdown()" onfocus="filterItemDropdown()">
+                        <div id="itemCustomDropdown" class="custom-dropdown"></div>
+                    </div>
                     
                     <select id="itemWarrantySelect" onchange="handleWarrantyChange()" style="flex: 1; margin-bottom: 0;">
                         <option value="1 Year Warranty" selected>1 Year</option>
@@ -333,6 +377,16 @@
 
         <div id="dbTab" class="tab-content">
             <div class="control-group">
+                <h3>Export Database Data</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-add" style="flex: 1; padding: 10px;" onclick="exportToPDF('customers')">📄 PDF (Customers)</button>
+                    <button class="btn btn-add" style="flex: 1; padding: 10px;" onclick="exportToPDF('items')">📄 PDF (Items)</button>
+                    <button class="btn btn-add" style="flex: 1; padding: 10px;" onclick="exportToCSV()">📊 Excel / CSV</button>
+                    <button class="btn btn-add" style="flex: 1; padding: 10px;" onclick="exportToJSON()">📥 JSON (Backup)</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
                 <h3>Customer Database</h3>
                 <input type="text" id="searchCustDB" class="search-bar" placeholder="🔍 Search Customers..." oninput="renderDBLists()">
                 <input type="text" id="dbCustName" placeholder="Customer Name">
@@ -373,6 +427,15 @@
         </div>
 
         <div id="settingsTab" class="tab-content">
+            <div class="control-group">
+                <h3>System Security</h3>
+                <label>Change Username:</label>
+                <input type="text" id="newUsername" placeholder="Enter new username">
+                <label>Change Password:</label>
+                <input type="password" id="newPassword" placeholder="Enter new password">
+                <button class="btn btn-add" onclick="updateCredentials()">🔒 Update Login Details</button>
+            </div>
+            
             <div class="control-group">
                 <h3>Profile Management</h3>
                 <div style="display: flex; gap: 10px;">
@@ -524,7 +587,6 @@
         appId: "1:364978658217:web:c0848529f5382b419842b8"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -542,20 +604,214 @@
     let docHistory = [];
     let profileList = [];
     let currentBizListenerRef = null;
+    
+    // Auth Variables
+    let systemAuth = { user: "Ashen9666@", pass: "Ashen9666@" };
 
     const defaultProfileList = [
         { id: "biz1", name: "🏢 Default Business" }
     ];
 
     // ==========================================
+    // 3. AUTHENTICATION LOGIC
+    // ==========================================
+    function initAuth() {
+        // Fetch credentials from DB or set defaults
+        db.ref('admin/credentials').on('value', snap => {
+            if(snap.exists()) {
+                systemAuth = snap.val();
+            } else {
+                db.ref('admin/credentials').set(systemAuth); // Set default if DB empty
+            }
+        });
+
+        // Check LocalStorage for "Remember Me"
+        if (localStorage.getItem('invoice_logged_in') === 'true') {
+            showApp();
+        }
+    }
+
+    function attemptLogin() {
+        let u = document.getElementById('loginUser').value;
+        let p = document.getElementById('loginPass').value;
+        let remember = document.getElementById('rememberMe').checked;
+
+        if (u === systemAuth.user && p === systemAuth.pass) {
+            if (remember) localStorage.setItem('invoice_logged_in', 'true');
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            showApp();
+        } else {
+            showAlertModal("Login Failed", "Incorrect Username or Password.");
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('invoice_logged_in');
+        document.getElementById('mainApp').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+    }
+
+    function showApp() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'flex';
+        initApp(); // Load data once logged in
+    }
+
+    function handleForgotPassword() {
+        // Since frontend JS cannot securely send emails without exposing keys,
+        // we use a mailto link as a fallback solution for password recovery.
+        let subject = encodeURIComponent("Invoice System - Password Recovery Request");
+        let body = encodeURIComponent("Please provide my login details. My system has locked me out.");
+        window.location.href = `mailto:ashendulanja075@gmail.com?subject=${subject}&body=${body}`;
+        
+        // Secondary backup: Show it in a prompt locally if they just forgot it but have access to this device.
+        let pin = prompt("Please enter recovery PIN (0000) to view credentials locally:");
+        if(pin === "0000") {
+            showAlertModal("Recovery", `Username: ${systemAuth.user}\nPassword: ${systemAuth.pass}`);
+        }
+    }
+
+    function updateCredentials() {
+        let u = document.getElementById('newUsername').value.trim();
+        let p = document.getElementById('newPassword').value.trim();
+        if(!u || !p) return showAlertModal("Error", "Please fill both new username and password.");
+        
+        showConfirmModal("Confirm Change", "Are you sure you want to update the login details?", "Update", "modal-btn-confirm", function() {
+            systemAuth = { user: u, pass: p };
+            db.ref('admin/credentials').set(systemAuth).then(() => {
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newPassword').value = '';
+                showAlertModal("Success", "Login credentials updated successfully.");
+            });
+        });
+    }
+
+    // ==========================================
+    // CUSTOM DROPDOWN LOGIC (Fixing Mobile Issue)
+    // ==========================================
+    function filterCustDropdown() {
+        let term = document.getElementById('custName').value.toLowerCase();
+        let drop = document.getElementById('custCustomDropdown');
+        drop.innerHTML = '';
+        let hasItems = false;
+
+        customersDB.forEach(c => {
+            if (c.name.toLowerCase().includes(term) || c.address.toLowerCase().includes(term)) {
+                hasItems = true;
+                let div = document.createElement('div');
+                div.innerHTML = `<strong>${c.name}</strong><span>${c.address || ''}</span>`;
+                div.onclick = function() {
+                    document.getElementById('custName').value = c.name;
+                    document.getElementById('custAddress').value = c.address;
+                    drop.style.display = 'none';
+                    updateView();
+                };
+                drop.appendChild(div);
+            }
+        });
+        drop.style.display = hasItems ? 'block' : 'none';
+    }
+
+    function filterItemDropdown() {
+        let term = document.getElementById('itemName').value.toLowerCase();
+        let drop = document.getElementById('itemCustomDropdown');
+        drop.innerHTML = '';
+        let hasItems = false;
+
+        productsDB.forEach(p => {
+            if (p.name.toLowerCase().includes(term) || (p.desc && p.desc.toLowerCase().includes(term))) {
+                hasItems = true;
+                let div = document.createElement('div');
+                div.innerHTML = `<strong>${p.name}</strong><span>LKR ${formatMoney(p.price)}</span>`;
+                div.onclick = function() {
+                    document.getElementById('itemName').value = p.name;
+                    document.getElementById('itemPrice').value = p.price;
+                    if(p.desc) document.getElementById('itemDesc').value = p.desc;
+                    drop.style.display = 'none';
+                };
+                drop.appendChild(div);
+            }
+        });
+        drop.style.display = hasItems ? 'block' : 'none';
+    }
+
+    // Hide dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#custName') && !e.target.closest('#custCustomDropdown')) {
+            document.getElementById('custCustomDropdown').style.display = 'none';
+        }
+        if (!e.target.closest('#itemName') && !e.target.closest('#itemCustomDropdown')) {
+            document.getElementById('itemCustomDropdown').style.display = 'none';
+        }
+    });
+
+    // ==========================================
+    // DATABASE EXPORT LOGIC
+    // ==========================================
+    function exportToCSV() {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        csvContent += "--- CUSTOMERS ---\nName,Address\n";
+        customersDB.forEach(c => {
+            let row = `"${c.name}","${c.address.replace(/\n/g, ' ')}"`;
+            csvContent += row + "\n";
+        });
+
+        csvContent += "\n--- ITEMS ---\nItem Name,Description,Price\n";
+        productsDB.forEach(p => {
+            let desc = p.desc ? p.desc.replace(/\n/g, ' ') : '';
+            let row = `"${p.name}","${desc}",${p.price}`;
+            csvContent += row + "\n";
+        });
+
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "System_Database_Export.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportToJSON() {
+        let exportData = { customers: customersDB, items: productsDB };
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+        let link = document.createElement("a");
+        link.setAttribute("href", dataStr);
+        link.setAttribute("download", "System_Backup.json");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportToPDF(type) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        
+        if(type === 'customers') {
+            doc.text("Customer Database", 14, 20);
+            let bodyData = customersDB.map(c => [c.name, c.address]);
+            doc.autoTable({ startY: 25, head: [['Customer Name', 'Address/Contact']], body: bodyData });
+            doc.save("Customers_Database.pdf");
+        } else {
+            doc.text("Item/Product Database", 14, 20);
+            let bodyData = productsDB.map(p => [p.name, p.desc || '-', formatMoney(p.price)]);
+            doc.autoTable({ startY: 25, head: [['Item Name', 'Description', 'Price (LKR)']], body: bodyData });
+            doc.save("Items_Database.pdf");
+        }
+    }
+
+
+    // ==========================================
     // 3. INIT APP & LISTENERS (Realtime Sync)
     // ==========================================
     function initApp() {
-        // Listen to Global Profile List changes
         db.ref('global/profileList').on('value', (snapshot) => {
             let data = snapshot.val();
             let currentSelection = document.getElementById('profileSelect').value;
-            
             profileList = data ? data : defaultProfileList;
             renderProfileDropdown();
             
@@ -568,8 +824,7 @@
         });
 
         document.getElementById('docDate').valueAsDate = new Date();
-        let nextWeek = new Date();
-        nextWeek.setDate(nextWeek.getDate() + 14);
+        let nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 14);
         document.getElementById('validDate').valueAsDate = nextWeek;
     }
 
@@ -680,10 +935,8 @@
     function addNewProfile() {
         let name = prompt("Enter a name for the new profile:");
         if (!name || name.trim() === "") return;
-        
         let newId = "biz_" + new Date().getTime();
         profileList.push({ id: newId, name: name.trim() });
-        
         db.ref('global/profileList').set(profileList).then(() => {
             document.getElementById('profileSelect').value = newId;
             loadProfile();
@@ -696,21 +949,17 @@
         let profile = profileList.find(p => p.id === activeId);
         let newName = prompt("Enter new name for this profile:", profile.name);
         if (!newName || newName.trim() === "") return;
-        
         profile.name = newName.trim();
         db.ref('global/profileList').set(profileList);
     }
 
     function deleteCurrentProfile() {
         if (profileList.length <= 1) return showAlertModal("Denied", "You must have at least one active profile.");
-        
         let activeId = document.getElementById('profileSelect').value;
         let profile = profileList.find(p => p.id === activeId);
-        
         showConfirmModal("Delete Profile", `Delete '${profile.name}' permanently from all devices?`, "Yes, Delete", "modal-btn-danger", function() {
             profileList = profileList.filter(p => p.id !== activeId);
             db.ref('global/profileList').set(profileList);
-            
             db.ref('profiles/' + activeId).remove();
             db.ref('customers/' + activeId).remove();
             db.ref('products/' + activeId).remove();
@@ -723,18 +972,16 @@
         let name = document.getElementById('dbCustName').value.trim();
         let address = document.getElementById('dbCustAddress').value.trim();
         if(!name) return showAlertModal("Error", "Customer Name is required.");
-        
         if (editingDbCustIndex !== -1) {
             customersDB[editingDbCustIndex] = {name, address};
             editingDbCustIndex = -1;
-            let btn = document.querySelector('#dbTab .control-group:nth-child(1) .btn-add');
+            let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); // Adjusted nth-child
             btn.innerHTML = "+ Save Customer"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
         } else {
             let existingIndex = customersDB.findIndex(c => c.name === name);
             if(existingIndex !== -1) customersDB[existingIndex] = {name, address};
             else customersDB.push({name, address});
         }
-        
         db.ref('customers/' + activeBiz).set(customersDB);
         document.getElementById('dbCustName').value = '';
         document.getElementById('dbCustAddress').value = '';
@@ -752,18 +999,16 @@
         let desc = document.getElementById('dbItemDesc').value.trim();
         let price = parseFloat(document.getElementById('dbItemPrice').value) || 0;
         if(!name) return showAlertModal("Error", "Item Name is required.");
-
         if (editingDbItemIndex !== -1) {
             productsDB[editingDbItemIndex] = {name, desc, price};
             editingDbItemIndex = -1;
-            let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add');
+            let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); // Adjusted nth-child
             btn.innerHTML = "+ Save Item"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
         } else {
             let existingIndex = productsDB.findIndex(p => p.name === name);
             if(existingIndex !== -1) productsDB[existingIndex] = {name, desc, price};
             else productsDB.push({name, desc, price});
         }
-
         db.ref('products/' + activeBiz).set(productsDB);
         document.getElementById('dbItemName').value = '';
         document.getElementById('dbItemDesc').value = '';
@@ -779,7 +1024,6 @@
     function saveToHistory() {
         let activeBiz = document.getElementById('profileSelect').value;
         let docNo = document.getElementById('docNo').value;
-
         let entry = {
             docNo: docNo,
             docType: document.getElementById('docType').value,
@@ -793,11 +1037,8 @@
         };
 
         let existingIndex = docHistory.findIndex(h => h.docNo === docNo);
-        if (existingIndex >= 0) {
-            docHistory[existingIndex] = entry; 
-        } else {
-            docHistory.push(entry); 
-        }
+        if (existingIndex >= 0) docHistory[existingIndex] = entry; 
+        else docHistory.push(entry); 
 
         db.ref('history/' + activeBiz).set(docHistory);
     }
@@ -848,18 +1089,12 @@
         let bestPrefix = type === 'QUOTATION' ? 'QUO-' : 'INV-';
         let numberLength = 4;
         let found = false;
-
         for (let i = 0; i < docHistory.length; i++) {
             if (docHistory[i].docType === type) {
                 let match = docHistory[i].docNo.match(/^(.*?)(\d+)$/);
                 if (match) {
                     let num = parseInt(match[2], 10);
-                    if (num > maxNumber) {
-                        maxNumber = num;
-                        bestPrefix = match[1];
-                        numberLength = match[2].length;
-                        found = true;
-                    }
+                    if (num > maxNumber) { maxNumber = num; bestPrefix = match[1]; numberLength = match[2].length; found = true; }
                 }
             }
         }
@@ -902,7 +1137,6 @@
         renderTable();
     }
 
-    // FIXED: Window event listener added to wait for the print dialog to finish before resetting the UI.
     function initiatePrintAndSave() {
         let docNo = document.getElementById('docNo').value.trim();
         if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
@@ -918,8 +1152,6 @@
         
         showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
             saveToHistory();
-            
-            // Wait until the print dialog is closed before generating the next blank form
             let afterPrint = function() {
                 originalDocNo = null; 
                 resetInvoiceForm();
@@ -928,7 +1160,6 @@
                 window.removeEventListener('afterprint', afterPrint);
             };
             window.addEventListener('afterprint', afterPrint);
-            
             window.print();
         });
     }
@@ -984,31 +1215,24 @@
         
         document.getElementById('displayDocType').innerText = h.docType;
         if(h.docType === 'QUOTATION') {
-            document.getElementById('validDateControl').style.display = 'block';
-            document.getElementById('displayValidDateArea').style.display = 'block'; 
+            document.getElementById('validDateControl').style.display = 'block'; document.getElementById('displayValidDateArea').style.display = 'block'; 
         } else {
-            document.getElementById('validDateControl').style.display = 'none';
-            document.getElementById('displayValidDateArea').style.display = 'none'; 
+            document.getElementById('validDateControl').style.display = 'none'; document.getElementById('displayValidDateArea').style.display = 'none'; 
         }
         renderTable(); updateView();
         switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
     }
 
     function clearHistFilters() {
-        document.getElementById('histSearch').value = '';
-        document.getElementById('histFrom').value = '';
-        document.getElementById('histTo').value = '';
-        renderHistory();
+        document.getElementById('histSearch').value = ''; document.getElementById('histFrom').value = ''; document.getElementById('histTo').value = ''; renderHistory();
     }
 
-    // FIXED: Properly added text inside <option> tags so mobile browsers render them correctly.
     function renderDBLists() {
         let custSearchTerm = (document.getElementById('searchCustDB')?.value || '').toLowerCase();
         let itemSearchTerm = (document.getElementById('searchItemDB')?.value || '').toLowerCase();
 
-        let custDataListHTML = ''; let custUIHTML = '';
+        let custUIHTML = '';
         customersDB.forEach((c, index) => {
-            custDataListHTML += `<option value="${c.name}">${c.name}</option>`;
             if (c.name.toLowerCase().includes(custSearchTerm) || c.address.toLowerCase().includes(custSearchTerm)) {
                 custUIHTML += `<div class="db-list-item">
                     <div><strong style="color:var(--primary);">${c.name}</strong><br><span style="color:var(--text-muted);">${c.address}</span></div>
@@ -1016,12 +1240,10 @@
                 </div>`;
             }
         });
-        document.getElementById('custDatalist').innerHTML = custDataListHTML; 
         document.getElementById('customerDBList').innerHTML = custUIHTML;
 
-        let prodDataListHTML = ''; let prodUIHTML = '';
+        let prodUIHTML = '';
         productsDB.forEach((p, index) => {
-            prodDataListHTML += `<option value="${p.name}">${p.name}</option>`;
             if (p.name.toLowerCase().includes(itemSearchTerm) || (p.desc && p.desc.toLowerCase().includes(itemSearchTerm))) {
                 prodUIHTML += `<div class="db-list-item">
                     <div><strong style="color:var(--primary);">${p.name}</strong><br><span style="color:var(--secondary); font-weight:700;">LKR ${formatMoney(p.price)}</span></div>
@@ -1029,7 +1251,6 @@
                 </div>`;
             }
         });
-        document.getElementById('itemDatalist').innerHTML = prodDataListHTML; 
         document.getElementById('itemDBList').innerHTML = prodUIHTML;
     }
 
@@ -1037,7 +1258,7 @@
         let cust = customersDB[index];
         document.getElementById('dbCustName').value = cust.name; document.getElementById('dbCustAddress').value = cust.address;
         editingDbCustIndex = index;
-        let btn = document.querySelector('#dbTab .control-group:nth-child(1) .btn-add');
+        let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add');
         btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
     }
 
@@ -1045,20 +1266,8 @@
         let item = productsDB[index];
         document.getElementById('dbItemName').value = item.name; document.getElementById('dbItemDesc').value = item.desc; document.getElementById('dbItemPrice').value = item.price;
         editingDbItemIndex = index;
-        let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add');
+        let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add');
         btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
-    }
-
-    function autoFillCustomer() {
-        let currentName = document.getElementById('custName').value;
-        let match = customersDB.find(c => c.name === currentName);
-        if(match) document.getElementById('custAddress').value = match.address;
-    }
-
-    function autoFillItem() {
-        let currentName = document.getElementById('itemName').value;
-        let match = productsDB.find(p => p.name === currentName);
-        if(match) { document.getElementById('itemPrice').value = match.price; if(match.desc) document.getElementById('itemDesc').value = match.desc; }
     }
 
     function switchTab(tabId, btn) {
@@ -1242,8 +1451,7 @@
         document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(grossTotal - totalDiscount);
     }
 
-    document.addEventListener("DOMContentLoaded", initApp);
-    if (document.readyState === "complete" || document.readyState === "interactive") initApp();
+    document.addEventListener("DOMContentLoaded", initAuth); // Start with Auth instead of initApp
 </script>
 
 </body>
