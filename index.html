@@ -581,10 +581,11 @@
     const supabaseUrl = 'https://gseawgjmvcpaxgnqsxry.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZWF3Z2ptdmNwYXhnbnFzeHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MjM5NzEsImV4cCI6MjA4NzM5OTk3MX0.u2nbmLNBxvwfbOhb7JtXpTo0Ax6pW0OjjWhQe1VJBNM';
     
-    let supabase = null;
+    // වෙනස් කල කොටස: supabaseClient කියන නම පාවිච්චි කලා හැප්පෙන්නේ නැති වෙන්න.
+    let supabaseClient = null;
     try {
         if(window.supabase) {
-            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         } else {
             console.warn("Supabase SDK is not loaded.");
         }
@@ -598,9 +599,9 @@
     let dbListeners = {};
     let dbCache = {};
 
-    if(supabase) {
+    if(supabaseClient) {
         try {
-            supabase.channel('any_change')
+            supabaseClient.channel('any_change')
               .on('postgres_changes', { event: '*', schema: 'public', table: 'json_store' }, payload => {
                   let id = payload.new.id;
                   let data = payload.new.data;
@@ -615,8 +616,8 @@
 
     function onDbChange(id, callback) {
       dbListeners[id] = callback;
-      if(supabase) {
-          supabase.from('json_store').select('data').eq('id', id).single()
+      if(supabaseClient) {
+          supabaseClient.from('json_store').select('data').eq('id', id).single()
           .then((res) => {
               if (res.error) {
                   console.warn("DB Warning: Please make sure you disabled RLS in Supabase.");
@@ -637,9 +638,9 @@
 
     async function saveDb(id, data) {
       dbCache[id] = data; 
-      if(supabase) {
+      if(supabaseClient) {
           try {
-              let { error } = await supabase.from('json_store').upsert({ id: id, data: data });
+              let { error } = await supabaseClient.from('json_store').upsert({ id: id, data: data });
               if(error) console.error("Error saving to Supabase: ", error.message);
           } catch(e) {
               console.error("Save Error:", e);
@@ -688,7 +689,6 @@
 
     function attemptLogin() {
         try {
-            // Trim removes accidental spaces from phone keyboards
             let u = document.getElementById('loginUser').value.trim();
             let p = document.getElementById('loginPass').value.trim();
             let remember = document.getElementById('rememberMe').checked;
@@ -1015,8 +1015,8 @@
         showConfirmModal("Delete Profile", `Delete '${profile.name}' permanently from all devices?`, "Yes, Delete", "modal-btn-danger", function() {
             profileList = profileList.filter(p => p.id !== activeId);
             saveDb('global/profileList', profileList);
-            if(supabase) {
-                supabase.from('json_store').delete().in('id', [
+            if(supabaseClient) {
+                supabaseClient.from('json_store').delete().in('id', [
                     'profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId
                 ]).then();
             }
