@@ -579,43 +579,64 @@
     // ==========================================
     // 1. SUPABASE CONFIGURATION 
     // ==========================================
-    // මෙතනට ඔයාගේ Supabase Project එකේ URL එක සහ Anon Key එක දාන්න
     const supabaseUrl = 'https://gseawgjmvcpaxgnqsxry.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZWF3Z2ptdmNwYXhnbnFzeHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MjM5NzEsImV4cCI6MjA4NzM5OTk3MX0.u2nbmLNBxvwfbOhb7JtXpTo0Ax6pW0OjjWhQe1VJBNM';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // SAFE INITIALIZATION - Prevents page freezing if Supabase connection fails
+    let supabase = null;
+    try {
+        if(window.supabase) {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        } else {
+            console.error("Supabase library not loaded.");
+        }
+    } catch(e) {
+        console.error("Error connecting to Supabase: ", e);
+    }
 
     // ==========================================
-    // SUPABASE "NoSQL-LIKE" WRAPPER (To keep your existing structure working 1:1)
+    // SUPABASE "NoSQL-LIKE" WRAPPER 
     // ==========================================
     let dbListeners = {};
     let dbCache = {};
 
-    // Listen to changes in the database globally
-    supabase.channel('any_change')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'json_store' }, payload => {
-          let id = payload.new.id;
-          let data = payload.new.data;
-          dbCache[id] = data;
-          if(dbListeners[id]) dbListeners[id](data);
-      })
-      .subscribe();
+    if(supabase) {
+        supabase.channel('any_change')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'json_store' }, payload => {
+              let id = payload.new.id;
+              let data = payload.new.data;
+              dbCache[id] = data;
+              if(dbListeners[id]) dbListeners[id](data);
+          })
+          .subscribe();
+    }
 
-    // Helper to read data and listen for changes
     function onDbChange(id, callback) {
       dbListeners[id] = callback;
-      supabase.from('json_store').select('data').eq('id', id).single().then(({ data }) => {
-          let val = data ? data.data : null;
-          dbCache[id] = val;
-          callback(val);
-      });
+      if(supabase) {
+          supabase.from('json_store').select('data').eq('id', id).single().then(({ data, error }) => {
+              if (error) {
+                  // Fallback to local default if table is empty or RLS is blocking
+                  console.warn("DB Warning for '"+id+"': ", error.message);
+                  callback(null); 
+              } else {
+                  let val = data ? data.data : null;
+                  dbCache[id] = val;
+                  callback(val);
+              }
+          });
+      } else {
+          callback(null); // Local fallback
+      }
     }
 
-    // Helper to save data
     async function saveDb(id, data) {
-      dbCache[id] = data; // Update locally right away for speed
-      await supabase.from('json_store').upsert({ id: id, data: data });
+      dbCache[id] = data; 
+      if(supabase) {
+          let { error } = await supabase.from('json_store').upsert({ id: id, data: data });
+          if(error) console.error("Error saving to Supabase: ", error.message);
+      }
     }
-
 
     // ==========================================
     // 2. APP VARIABLES
@@ -647,7 +668,7 @@
             if(val) {
                 systemAuth = val;
             } else {
-                saveDb('admin/credentials', systemAuth); // Set default if DB empty
+                saveDb('admin/credentials', systemAuth); 
             }
         });
 
@@ -852,7 +873,6 @@
         let activeBiz = document.getElementById('profileSelect').value;
         if (!activeBiz) return; 
 
-        // Clear previous listeners when switching profiles
         if (currentBizListenerRef && currentBizListenerRef !== activeBiz) {
             delete dbListeners['profiles/' + currentBizListenerRef];
             delete dbListeners['customers/' + currentBizListenerRef];
@@ -981,10 +1001,11 @@
         showConfirmModal("Delete Profile", `Delete '${profile.name}' permanently from all devices?`, "Yes, Delete", "modal-btn-danger", function() {
             profileList = profileList.filter(p => p.id !== activeId);
             saveDb('global/profileList', profileList);
-            // Delete actual DB records in Supabase
-            supabase.from('json_store').delete().in('id', [
-                'profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId
-            ]).then();
+            if(supabase) {
+                supabase.from('json_store').delete().in('id', [
+                    'profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId
+                ]).then();
+            }
         });
     }
 
@@ -1158,7 +1179,6 @@
         renderTable();
     }
 
-    // FIXED: Form doesn't automatically clear after printing. Wait for user confirmation.
     function initiatePrintAndSave() {
         let docNo = document.getElementById('docNo').value.trim();
         if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
@@ -1177,7 +1197,6 @@
             
             let afterPrint = function() {
                 window.removeEventListener('afterprint', afterPrint);
-                // Prompt user whether to clear the form or keep it.
                 setTimeout(function() {
                     showConfirmModal(
                         "Action Completed", 
@@ -1491,4 +1510,3 @@
 
 </body>
 </html>
-
