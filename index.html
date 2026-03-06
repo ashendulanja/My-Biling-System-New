@@ -50,7 +50,6 @@
         /* --- MODERN LOGIN SCREEN CSS --- */
         #loginScreen { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            /* Beautiful Animated Gradient Background */
             background: linear-gradient(-45deg, #0f172a, #1e293b, #3b82f6, #0f172a);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
@@ -63,6 +62,16 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* RECOVERY SCREEN CSS */
+        #recoveryScreen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #3b82f6, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex; align-items: center; justify-content: center; z-index: 9999; 
+            display: none; 
+        }
+
         .login-box { 
             background: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(10px);
@@ -72,7 +81,6 @@
             width: 100%; max-width: 400px; 
             text-align: center; 
             border: 1px solid rgba(255,255,255,0.2); 
-            /* Slide Up Animation */
             animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -352,6 +360,23 @@
         </div>
         
         <button class="btn" onclick="attemptLogin()">Login Securely</button>
+    </div>
+</div>
+
+<div id="recoveryScreen">
+    <div class="login-box">
+        <h2>🔑 Set New Password</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: -15px; margin-bottom: 20px;">
+            Please enter your new password below.
+        </p>
+        
+        <div class="input-group password-container">
+            <i>🔑</i>
+            <input type="password" id="recoveryNewPass" placeholder="New Password">
+            <span class="eye-icon" onclick="togglePassword('recoveryNewPass')">👁️</span>
+        </div>
+        
+        <button class="btn" onclick="completePasswordRecovery()">Save New Password</button>
     </div>
 </div>
 
@@ -770,7 +795,6 @@
         const { data: { session } } = await supabaseClient.auth.getSession();
         
         if (session) {
-            showLoader("Loading Database...");
             showApp();
         } else {
             // Background fetch just to have credentials ready for the old login flow simulation
@@ -785,6 +809,11 @@
                 document.getElementById('mainApp').style.display = 'none';
                 document.getElementById('loginScreen').style.display = 'flex';
             } 
+            else if (event === 'PASSWORD_RECOVERY') {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('recoveryScreen').style.display = 'flex';
+            }
         });
     }
 
@@ -802,15 +831,15 @@
             password: pass,
         });
 
+        hideLoader(); // HIDE LOADER INSTANTLY
+
         if (error) {
-            hideLoader();
             showAlertModal("Login Failed", "Incorrect Email or Password.");
         } else {
             if (remember) localStorage.setItem('invoice_logged_in', 'true');
             document.getElementById('loginUser').value = '';
             document.getElementById('loginPass').value = '';
-            showLoader("Loading Database...");
-            showApp();
+            showApp(); // SHOW APP INSTANTLY
         }
     }
 
@@ -830,6 +859,25 @@
                 showAlertModal("Access Denied", "Incorrect Security PIN!");
             }
         });
+    }
+
+    async function completePasswordRecovery() {
+        let newPass = document.getElementById('recoveryNewPass').value.trim();
+        if (!newPass) return showAlertModal("Error", "Please enter a new password.");
+
+        showLoader("Updating Password...");
+        const { error } = await supabaseClient.auth.updateUser({ password: newPass });
+        hideLoader();
+
+        if (error) {
+            showAlertModal("Error", error.message);
+        } else {
+            showAlertModal("Success!", "Your password has been successfully reset.");
+            document.getElementById('recoveryNewPass').value = '';
+            document.getElementById('recoveryScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            await supabaseClient.auth.signOut();
+        }
     }
 
     async function updateCredentials() {
@@ -901,8 +949,11 @@
     // ==========================================
     function showApp() {
         document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('recoveryScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         
+        hideLoader(); // Kill loader instantly so user sees UI
+
         onDbChange('global/profileList', (data) => {
             let currentSelection = document.getElementById('profileSelect').value;
             profileList = data ? data : defaultProfileList;
@@ -978,9 +1029,6 @@
             }
 
             updateTheme(); updateSignatureDisplay(); updateView();
-            
-            // Hide loader after first profile load
-            setTimeout(hideLoader, 500);
         });
 
         onDbChange('customers/' + activeBiz, snap => { customersDB = snap || []; renderDBLists(); });
@@ -1363,9 +1411,7 @@
         document.getElementById('subTotal').innerText = 'LKR ' + formatMoney(grossTotal); document.getElementById('discountRow').style.display = totalDiscount > 0 ? 'flex' : 'none'; if (totalDiscount > 0) document.getElementById('totalDiscountAmt').innerText = '- LKR ' + formatMoney(totalDiscount); document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(grossTotal - totalDiscount);
     }
 
-    // ==========================================
     // SECURITY: BLOCK RIGHT-CLICK & DEV TOOLS
-    // ==========================================
     document.addEventListener('contextmenu', event => event.preventDefault());
     document.onkeydown = function(e) {
         if(e.keyCode == 123) { return false; }
