@@ -105,12 +105,14 @@
         .login-options { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 25px; margin-top: 5px; font-weight: 600;}
         .forgot-link { color: var(--primary); cursor: pointer; transition: 0.2s; }
         .forgot-link:hover { color: var(--secondary); text-decoration: underline; }
-        
-        /* FIX: EYE ICON CSS */
-        .password-container { position: relative; width: 100%; margin-bottom: 15px; }
-        .password-container input { margin-bottom: 0 !important; } /* override general margin */
+
+        /* FIX 1: EYE ICON POSITION & LAYOUT */
+        .password-container { position: relative; width: 100%; }
         .eye-icon { position: absolute; right: 18px; top: 16px; cursor: pointer; font-size: 18px; color: #9ca3af; transition: 0.2s; z-index: 10;}
         .eye-icon:hover { color: var(--primary); }
+        .settings-pass-wrapper { position: relative; margin-bottom: 15px; }
+        .settings-pass-wrapper input { width: 100%; padding: 12px 45px 12px 15px; margin-bottom: 0; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; box-sizing: border-box; }
+        .settings-pass-wrapper .eye-icon { right: 15px; top: 12px; font-size: 16px; }
 
         /* RECOVERY SCREEN CSS */
         #recoveryScreen { 
@@ -154,15 +156,15 @@
         
         .profile-header { background: var(--black); padding: 15px 25px; display: flex; align-items: center; justify-content: space-between; gap: 15px;}
         
-        /* FIX: Dropdown styling & visibility */
+        /* FIX 2: Profile Select Dropdown Colors */
         .profile-header select { 
-            flex: 1; padding: 12px; font-weight: 700; border-radius: 10px; border: none; 
+            flex: 1; padding: 12px; font-weight: 700; border-radius: 10px; border: 1px solid #374151; 
             background: #1f2937; color: var(--white); font-size: 14px; cursor: pointer; outline: none;
-            appearance: auto;
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 12px auto;
         }
-        .profile-header select option {
-            background: var(--white); color: var(--black); font-weight: 600;
-        }
+        .profile-header select option { background: var(--white); color: var(--black); font-weight: 600; }
         
         .btn-save-profile { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s;}
         .btn-save-profile:hover { opacity: 0.9; transform: translateY(-1px);}
@@ -182,7 +184,7 @@
         .control-group h3 { margin-top: 0; color: var(--black); font-size: 14px; margin-bottom: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
         
         label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
-        input[type="text"], input[type="number"], input[type="date"], input[type="password"], select, textarea { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; color: var(--black); transition: all 0.2s; background: #f9fafb; font-weight: 500;}
+        input[type="text"], input[type="number"], input[type="date"], select, textarea { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; color: var(--black); transition: all 0.2s; background: #f9fafb; font-weight: 500;}
         input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; background: var(--white); box-shadow: 0 0 0 3px rgba(16, 98, 145, 0.1); }
         textarea { resize: vertical; height: 80px; }
         
@@ -378,7 +380,7 @@
             <input type="email" id="loginUser" placeholder="Email Address">
         </div>
         
-        <div class="input-group password-container">
+        <div class="input-group password-container" style="margin-bottom: 10px;">
             <i>🔒</i>
             <input type="password" id="loginPass" placeholder="Password">
             <span class="eye-icon" onclick="togglePassword('loginPass')">👁️</span>
@@ -563,13 +565,13 @@
             <div class="control-group">
                 <h3>System Security</h3>
                 <label>Current Password (Required to make changes):</label>
-                <div class="password-container">
+                <div class="settings-pass-wrapper">
                     <input type="password" id="oldPassword" placeholder="Enter current password">
                     <span class="eye-icon" onclick="togglePassword('oldPassword')">👁️</span>
                 </div>
                 
                 <label>Change Password:</label>
-                <div class="password-container">
+                <div class="settings-pass-wrapper">
                     <input type="password" id="newPassword" placeholder="Enter new password">
                     <span class="eye-icon" onclick="togglePassword('newPassword')">👁️</span>
                 </div>
@@ -852,12 +854,27 @@
     let currentBizListenerRef = null;
     let isAppInitialized = false;
     
+    // Auth fallback
     let systemAuth = { user: "Ashen9666@", pass: "Ashen9666@" };
     const defaultProfileList = [{ id: "biz1", name: "🏢 Default Business" }];
 
     // ==========================================
     // 5. AUTHENTICATION LOGIC
     // ==========================================
+    
+    // FIX: ADDED HEADER AUTHORIZATION
+    async function getAuthHeader() {
+        if(!supabaseClient) return null;
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if(session && session.access_token) {
+            return {
+                Authorization: `Bearer ${session.access_token}`,
+                apikey: supabaseKey
+            };
+        }
+        return null;
+    }
+
     async function setupAuthButtons() {
         if(!supabaseClient) {
             showAlertModal("Error", "No Database Connection");
@@ -968,7 +985,7 @@
     }
 
     // ==========================================
-    // SUPABASE DB WRAPPER 
+    // SUPABASE DB WRAPPER (Now uses explicit API fetching)
     // ==========================================
     supabaseClient.channel('any_change')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'json_store' }, payload => {
@@ -980,23 +997,36 @@
 
     async function onDbChange(id, callback) {
       dbListeners[id] = callback;
+      let headers = await getAuthHeader();
+      if(!headers) return callback(null);
+
       try {
-          const { data, error } = await supabaseClient.from('json_store').select('data').eq('id', id).single();
-          if (error && error.code !== 'PGRST116') { 
-              // Network error, ignore and don't wipe data
-              callback(null); 
-          } else { 
-              dbCache[id] = data ? data.data : null; 
-              callback(dbCache[id]); 
+          let response = await fetch(`${supabaseUrl}/rest/v1/json_store?id=eq.${encodeURIComponent(id)}&select=data`, {
+              headers: headers
+          });
+          let json = await response.json();
+          if(json && json.length > 0) {
+              dbCache[id] = json[0].data;
+              callback(dbCache[id]);
+          } else {
+              callback(null);
           }
       } catch(e) { callback(null); }
     }
 
     async function saveDb(id, data) {
       dbCache[id] = data; 
+      let headers = await getAuthHeader();
+      if(!headers) return;
+      headers['Content-Type'] = 'application/json';
+      headers['Prefer'] = 'resolution=merge-duplicates';
+
       try {
-          let { error } = await supabaseClient.from('json_store').upsert({ id: id, data: data });
-          if(error) console.error("Secure Save Error: ", error.message);
+          await fetch(`${supabaseUrl}/rest/v1/json_store`, {
+              method: 'POST',
+              headers: headers,
+              body: JSON.stringify({ id: id, data: data })
+          });
       } catch(e) {}
     }
 
@@ -1037,7 +1067,6 @@
 
         if (currentBizListenerRef === activeBiz) return;
 
-        // Clear UI data instantly so profiles don't mix visually
         customersDB = []; productsDB = []; docHistory = [];
         renderDBLists(); renderHistory(); resetInvoiceForm();
 
@@ -1242,8 +1271,13 @@
             
             await saveDb('global/profileList', profileList);
             
-            if(supabaseClient) {
-                supabaseClient.from('json_store').delete().in('id', ['profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId]).then();
+            // Delete with API explicit fetch
+            let headers = await getAuthHeader();
+            if(headers) {
+                headers['Content-Type'] = 'application/json';
+                fetch(`${supabaseUrl}/rest/v1/json_store?id=in.(${encodeURIComponent(`profiles/${activeId},customers/${activeId},products/${activeId},history/${activeId}`)})`, {
+                    method: 'DELETE', headers: headers
+                });
             }
             
             currentBizListenerRef = null;
