@@ -15,7 +15,6 @@
 
     <style>
         :root {
-            /* Typo Fixed Here! */
             --primary: #106291;       
             --secondary: #0a405e;     
             --text-main: #111827;
@@ -106,6 +105,10 @@
         .login-options { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 25px; margin-top: 5px; font-weight: 600;}
         .forgot-link { color: var(--primary); cursor: pointer; transition: 0.2s; }
         .forgot-link:hover { color: var(--secondary); text-decoration: underline; }
+        
+        /* FIX: EYE ICON CSS */
+        .password-container { position: relative; width: 100%; margin-bottom: 15px; }
+        .password-container input { margin-bottom: 0 !important; } /* override general margin */
         .eye-icon { position: absolute; right: 18px; top: 16px; cursor: pointer; font-size: 18px; color: #9ca3af; transition: 0.2s; z-index: 10;}
         .eye-icon:hover { color: var(--primary); }
 
@@ -150,7 +153,17 @@
         .controls { flex: 1.1; background: var(--white); border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); position: sticky; top: 20px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border);}
         
         .profile-header { background: var(--black); padding: 15px 25px; display: flex; align-items: center; justify-content: space-between; gap: 15px;}
-        .profile-header select { flex: 1; padding: 12px; font-weight: 700; border-radius: 10px; border: none; background: #1f2937; color: var(--white); font-size: 14px; cursor: pointer; outline: none;}
+        
+        /* FIX: Dropdown styling & visibility */
+        .profile-header select { 
+            flex: 1; padding: 12px; font-weight: 700; border-radius: 10px; border: none; 
+            background: #1f2937; color: var(--white); font-size: 14px; cursor: pointer; outline: none;
+            appearance: auto;
+        }
+        .profile-header select option {
+            background: var(--white); color: var(--black); font-weight: 600;
+        }
+        
         .btn-save-profile { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s;}
         .btn-save-profile:hover { opacity: 0.9; transform: translateY(-1px);}
 
@@ -969,7 +982,13 @@
       dbListeners[id] = callback;
       try {
           const { data, error } = await supabaseClient.from('json_store').select('data').eq('id', id).single();
-          if (error) { callback(null); } else { dbCache[id] = data ? data.data : null; callback(dbCache[id]); }
+          if (error && error.code !== 'PGRST116') { 
+              // Network error, ignore and don't wipe data
+              callback(null); 
+          } else { 
+              dbCache[id] = data ? data.data : null; 
+              callback(dbCache[id]); 
+          }
       } catch(e) { callback(null); }
     }
 
@@ -1089,16 +1108,23 @@
     }
 
     // ==========================================
-    // UI & UTILITY FUNCTIONS
+    // CUSTOM DROPDOWN LOGIC
     // ==========================================
     function filterCustDropdown() {
         let term = document.getElementById('custName').value.toLowerCase();
-        let drop = document.getElementById('custCustomDropdown'); drop.innerHTML = ''; let hasItems = false;
+        let drop = document.getElementById('custCustomDropdown');
+        drop.innerHTML = '';
+        let hasItems = false;
         customersDB.forEach(c => {
             if (c.name.toLowerCase().includes(term) || c.address.toLowerCase().includes(term)) {
-                hasItems = true; let div = document.createElement('div');
+                hasItems = true;
+                let div = document.createElement('div');
                 div.innerHTML = `<strong>${c.name}</strong><span>${c.address || ''}</span>`;
-                div.onclick = function() { document.getElementById('custName').value = c.name; document.getElementById('custAddress').value = c.address; drop.style.display = 'none'; updateView(); };
+                div.onclick = function() {
+                    document.getElementById('custName').value = c.name;
+                    document.getElementById('custAddress').value = c.address;
+                    drop.style.display = 'none'; updateView();
+                };
                 drop.appendChild(div);
             }
         });
@@ -1107,12 +1133,20 @@
 
     function filterItemDropdown() {
         let term = document.getElementById('itemName').value.toLowerCase();
-        let drop = document.getElementById('itemCustomDropdown'); drop.innerHTML = ''; let hasItems = false;
+        let drop = document.getElementById('itemCustomDropdown');
+        drop.innerHTML = '';
+        let hasItems = false;
         productsDB.forEach(p => {
             if (p.name.toLowerCase().includes(term) || (p.desc && p.desc.toLowerCase().includes(term))) {
-                hasItems = true; let div = document.createElement('div');
+                hasItems = true;
+                let div = document.createElement('div');
                 div.innerHTML = `<strong>${p.name}</strong><span>LKR ${formatMoney(p.price)}</span>`;
-                div.onclick = function() { document.getElementById('itemName').value = p.name; document.getElementById('itemPrice').value = p.price; if(p.desc) document.getElementById('itemDesc').value = p.desc; drop.style.display = 'none'; };
+                div.onclick = function() {
+                    document.getElementById('itemName').value = p.name;
+                    document.getElementById('itemPrice').value = p.price;
+                    if(p.desc) document.getElementById('itemDesc').value = p.desc;
+                    drop.style.display = 'none';
+                };
                 drop.appendChild(div);
             }
         });
@@ -1124,6 +1158,9 @@
         if (!e.target.closest('#itemName') && !e.target.closest('#itemCustomDropdown')) { document.getElementById('itemCustomDropdown').style.display = 'none'; }
     });
 
+    // ==========================================
+    // ALL OTHER FUNCTIONS
+    // ==========================================
     function exportToCSV() {
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "--- CUSTOMERS ---\nName,Address\n";
@@ -1143,9 +1180,13 @@
     function exportToPDF(type) {
         const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFontSize(18);
         if(type === 'customers') {
-            doc.text("Customer Database", 14, 20); doc.autoTable({ startY: 25, head: [['Customer Name', 'Address/Contact']], body: customersDB.map(c => [c.name, c.address]) }); doc.save("Customers_Database.pdf");
+            doc.text("Customer Database", 14, 20);
+            doc.autoTable({ startY: 25, head: [['Customer Name', 'Address/Contact']], body: customersDB.map(c => [c.name, c.address]) });
+            doc.save("Customers_Database.pdf");
         } else {
-            doc.text("Item/Product Database", 14, 20); doc.autoTable({ startY: 25, head: [['Item Name', 'Description', 'Price (LKR)']], body: productsDB.map(p => [p.name, p.desc || '-', formatMoney(p.price)]) }); doc.save("Items_Database.pdf");
+            doc.text("Item/Product Database", 14, 20);
+            doc.autoTable({ startY: 25, head: [['Item Name', 'Description', 'Price (LKR)']], body: productsDB.map(p => [p.name, p.desc || '-', formatMoney(p.price)]) });
+            doc.save("Items_Database.pdf");
         }
     }
 
@@ -1153,7 +1194,9 @@
         let activeBiz = document.getElementById('profileSelect').value;
         let profileToSave = {
             compName: document.getElementById('compName').value, compAddress: document.getElementById('compAddress').value, primaryColor: document.getElementById('primaryColor').value, secondaryColor: document.getElementById('secondaryColor').value, logoSize: document.getElementById('logoSize').value, sigSize: document.getElementById('sigSize').value, sigType: document.getElementById('sigType').value, bankName: document.getElementById('bankName').value, accName: document.getElementById('accName').value, accNo: document.getElementById('accNo').value, bankBranch: document.getElementById('bankBranch').value, note1Heading: document.getElementById('note1Heading').value, notes: document.getElementById('notes').value, note2Heading: document.getElementById('note2Heading').value, note2Text: document.getElementById('note2Text').value,
-            logoBase64: document.getElementById('logoPreview').style.display === 'block' ? document.getElementById('logoPreview').src : null, bankLogoBase64: document.getElementById('bankLogoPreview').style.display === 'block' ? document.getElementById('bankLogoPreview').src : null, sigBase64: document.getElementById('sigPreview').style.display === 'block' ? document.getElementById('sigPreview').src : null
+            logoBase64: document.getElementById('logoPreview').style.display === 'block' ? document.getElementById('logoPreview').src : null,
+            bankLogoBase64: document.getElementById('bankLogoPreview').style.display === 'block' ? document.getElementById('bankLogoPreview').src : null,
+            sigBase64: document.getElementById('sigPreview').style.display === 'block' ? document.getElementById('sigPreview').src : null
         };
         saveDb('profiles/' + activeBiz, profileToSave).then(() => { 
             localStorage.setItem('nexapay_last_user', profileToSave.compName);
@@ -1166,9 +1209,15 @@
             if (!name || name.trim() === "") return;
             let newId = "biz_" + new Date().getTime();
             profileList.push({ id: newId, name: name.trim() });
-            renderProfileDropdown(); document.getElementById('profileSelect').value = newId;
+            
+            renderProfileDropdown();
+            document.getElementById('profileSelect').value = newId;
+            
             await saveDb('global/profileList', profileList);
-            currentBizListenerRef = null; loadActiveProfileData(); 
+            
+            currentBizListenerRef = null; 
+            loadActiveProfileData(); 
+            
             showAlertModal("Success", `Profile '${name.trim()}' created!`);
         }, false);
     }
@@ -1184,17 +1233,27 @@
     function deleteCurrentProfile() {
         if (profileList.length <= 1) return showAlertModal("Denied", "You must have at least one active profile.");
         let activeId = document.getElementById('profileSelect').value; let profile = profileList.find(p => p.id === activeId);
+        
         showConfirmModal("Delete Profile", `Delete '${profile.name}' permanently from all devices?`, "Yes, Delete", "modal-btn-danger", async function() {
             profileList = profileList.filter(p => p.id !== activeId);
-            document.getElementById('profileSelect').value = profileList[0].id; renderProfileDropdown();
+            
+            document.getElementById('profileSelect').value = profileList[0].id;
+            renderProfileDropdown();
+            
             await saveDb('global/profileList', profileList);
-            if(supabaseClient) { supabaseClient.from('json_store').delete().in('id', ['profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId]).then(); }
-            currentBizListenerRef = null; loadActiveProfileData();
+            
+            if(supabaseClient) {
+                supabaseClient.from('json_store').delete().in('id', ['profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId]).then();
+            }
+            
+            currentBizListenerRef = null;
+            loadActiveProfileData();
         });
     }
 
     function saveCustomerDB() {
-        let activeBiz = document.getElementById('profileSelect').value; let name = document.getElementById('dbCustName').value.trim(); let address = document.getElementById('dbCustAddress').value.trim();
+        let activeBiz = document.getElementById('profileSelect').value;
+        let name = document.getElementById('dbCustName').value.trim(); let address = document.getElementById('dbCustAddress').value.trim();
         if(!name) return showAlertModal("Error", "Customer Name is required.");
         if (editingDbCustIndex !== -1) {
             customersDB[editingDbCustIndex] = {name, address}; editingDbCustIndex = -1;
@@ -1207,10 +1266,15 @@
         document.getElementById('dbCustName').value = ''; document.getElementById('dbCustAddress').value = '';
     }
 
-    function deleteCustomerDB(index) { let activeBiz = document.getElementById('profileSelect').value; customersDB.splice(index, 1); saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists()); }
+    function deleteCustomerDB(index) {
+        let activeBiz = document.getElementById('profileSelect').value;
+        customersDB.splice(index, 1);
+        saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists());
+    }
 
     function saveItemDB() {
-        let activeBiz = document.getElementById('profileSelect').value; let name = document.getElementById('dbItemName').value.trim(); let desc = document.getElementById('dbItemDesc').value.trim(); let price = parseFloat(document.getElementById('dbItemPrice').value) || 0;
+        let activeBiz = document.getElementById('profileSelect').value;
+        let name = document.getElementById('dbItemName').value.trim(); let desc = document.getElementById('dbItemDesc').value.trim(); let price = parseFloat(document.getElementById('dbItemPrice').value) || 0;
         if(!name) return showAlertModal("Error", "Item Name is required.");
         if (editingDbItemIndex !== -1) {
             productsDB[editingDbItemIndex] = {name, desc, price}; editingDbItemIndex = -1;
@@ -1223,11 +1287,17 @@
         document.getElementById('dbItemName').value = ''; document.getElementById('dbItemDesc').value = ''; document.getElementById('dbItemPrice').value = '';
     }
 
-    function deleteItemDB(index) { let activeBiz = document.getElementById('profileSelect').value; productsDB.splice(index, 1); saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists()); }
+    function deleteItemDB(index) {
+        let activeBiz = document.getElementById('profileSelect').value;
+        productsDB.splice(index, 1);
+        saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists());
+    }
 
     function saveToHistory() {
         let activeBiz = document.getElementById('profileSelect').value; let docNo = document.getElementById('docNo').value;
-        let entry = { docNo: docNo, docType: document.getElementById('docType').value, date: document.getElementById('docDate').value, validDate: document.getElementById('validDate').value, custName: document.getElementById('custName').value || 'Unknown Customer', custAddress: document.getElementById('custAddress').value, total: document.getElementById('grandTotal').innerText, items: JSON.parse(JSON.stringify(itemsList)), timestamp: new Date().getTime() };
+        let entry = {
+            docNo: docNo, docType: document.getElementById('docType').value, date: document.getElementById('docDate').value, validDate: document.getElementById('validDate').value, custName: document.getElementById('custName').value || 'Unknown Customer', custAddress: document.getElementById('custAddress').value, total: document.getElementById('grandTotal').innerText, items: JSON.parse(JSON.stringify(itemsList)), timestamp: new Date().getTime()
+        };
         let existingIndex = docHistory.findIndex(h => h.docNo === docNo);
         if (existingIndex >= 0) docHistory[existingIndex] = entry; else docHistory.push(entry); 
         saveDb('history/' + activeBiz, docHistory).then(()=> renderHistory());
@@ -1244,9 +1314,18 @@
     }
 
     function renderProfileDropdown() {
-        let select = document.getElementById('profileSelect'); let currentVal = select.value; select.innerHTML = '';
-        profileList.forEach(p => { let opt = document.createElement('option'); opt.value = p.id; opt.innerText = p.name; select.appendChild(opt); });
-        if (currentVal && profileList.some(p => p.id === currentVal)) { select.value = currentVal; }
+        let select = document.getElementById('profileSelect'); 
+        let currentVal = select.value; 
+        select.innerHTML = '';
+        profileList.forEach(p => { 
+            let opt = document.createElement('option'); 
+            opt.value = p.id; 
+            opt.innerText = p.name; 
+            select.appendChild(opt); 
+        });
+        if (currentVal && profileList.some(p => p.id === currentVal)) {
+            select.value = currentVal;
+        }
     }
 
     function handleDocDateChange() {
@@ -1277,8 +1356,10 @@
         let docNo = document.getElementById('docNo').value.trim();
         if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
         if(itemsList.length === 0) return showAlertModal("Error", "Please add at least one item to the document!");
+
         let exists = docHistory.some(h => h.docNo === docNo);
         if (exists && originalDocNo !== docNo) return showAlertModal("Duplicate Number Found", `Document Number ${docNo} already exists in the history!`);
+
         let title = exists ? "Update Document" : "Save Document"; let msg = exists ? "Update this document in the cloud history?" : "Save and print this new document?";
         
         showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
@@ -1292,11 +1373,15 @@
     }
 
     function renderHistory() {
-        let searchTerm = (document.getElementById('histSearch').value || '').toLowerCase(); let fromDate = document.getElementById('histFrom').value; let toDate = document.getElementById('histTo').value;
+        let searchTerm = (document.getElementById('histSearch').value || '').toLowerCase();
+        let fromDate = document.getElementById('histFrom').value; let toDate = document.getElementById('histTo').value;
         let sortedHistory = [...docHistory].sort((a, b) => b.timestamp - a.timestamp); let html = '';
+        
         sortedHistory.forEach((h, index) => {
             let matchSearch = h.custName.toLowerCase().includes(searchTerm) || h.docNo.toLowerCase().includes(searchTerm);
-            let matchFrom = fromDate ? (new Date(h.date) >= new Date(fromDate)) : true; let matchTo = toDate ? (new Date(h.date) <= new Date(toDate)) : true;
+            let matchFrom = fromDate ? (new Date(h.date) >= new Date(fromDate)) : true;
+            let matchTo = toDate ? (new Date(h.date) <= new Date(toDate)) : true;
+
             if (matchSearch && matchFrom && matchTo) {
                 let badgeClass = h.docType === 'QUOTATION' ? 'hist-badge quo' : 'hist-badge'; let originalIndex = docHistory.findIndex(orig => orig.docNo === h.docNo);
                 html += `<div class="hist-card" onclick="loadHistoryItem(${originalIndex})"><div class="hist-info"><h4>${h.custName}</h4><p>${h.docNo} • ${formatDate(h.date)}</p></div><div class="hist-meta"><span class="hist-total">${h.total}</span><div style="margin-top: 5px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;"><span class="${badgeClass}">${h.docType}</span><button class="del-btn" style="opacity:1; padding: 0;" onclick="deleteHistoryItem(event, '${h.docNo}')" title="Delete">🗑️</button></div></div></div>`;
@@ -1308,9 +1393,11 @@
 
     function loadHistoryItem(index) {
         let h = docHistory[index]; if(!h) return;
-        document.getElementById('docType').value = h.docType; document.getElementById('docNo').value = h.docNo; document.getElementById('docDate').value = h.date; document.getElementById('validDate').value = h.validDate || '';
+        document.getElementById('docType').value = h.docType; document.getElementById('docNo').value = h.docNo;
+        document.getElementById('docDate').value = h.date; document.getElementById('validDate').value = h.validDate || '';
         document.getElementById('custName').value = h.custName !== 'Unknown Customer' ? h.custName : ''; document.getElementById('custAddress').value = h.custAddress || '';
-        itemsList = JSON.parse(JSON.stringify(h.items)); originalDocNo = h.docNo; document.getElementById('displayDocType').innerText = h.docType;
+        itemsList = JSON.parse(JSON.stringify(h.items)); originalDocNo = h.docNo;
+        document.getElementById('displayDocType').innerText = h.docType;
         if(h.docType === 'QUOTATION') { document.getElementById('validDateControl').style.display = 'block'; document.getElementById('displayValidDateArea').style.display = 'block'; } 
         else { document.getElementById('validDateControl').style.display = 'none'; document.getElementById('displayValidDateArea').style.display = 'none'; }
         renderTable(); updateView(); switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
@@ -1327,6 +1414,7 @@
             }
         });
         document.getElementById('customerDBList').innerHTML = custUIHTML;
+
         let prodUIHTML = '';
         productsDB.forEach((p, index) => {
             if (p.name.toLowerCase().includes(itemSearchTerm) || (p.desc && p.desc.toLowerCase().includes(itemSearchTerm))) {
@@ -1336,8 +1424,15 @@
         document.getElementById('itemDBList').innerHTML = prodUIHTML;
     }
 
-    function editCustomerDB(index) { let cust = customersDB[index]; document.getElementById('dbCustName').value = cust.name; document.getElementById('dbCustAddress').value = cust.address; editingDbCustIndex = index; let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)"; }
-    function editItemDB(index) { let item = productsDB[index]; document.getElementById('dbItemName').value = item.name; document.getElementById('dbItemDesc').value = item.desc; document.getElementById('dbItemPrice').value = item.price; editingDbItemIndex = index; let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)"; }
+    function editCustomerDB(index) {
+        let cust = customersDB[index]; document.getElementById('dbCustName').value = cust.name; document.getElementById('dbCustAddress').value = cust.address; editingDbCustIndex = index;
+        let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)";
+    }
+
+    function editItemDB(index) {
+        let item = productsDB[index]; document.getElementById('dbItemName').value = item.name; document.getElementById('dbItemDesc').value = item.desc; document.getElementById('dbItemPrice').value = item.price; editingDbItemIndex = index;
+        let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)";
+    }
 
     function switchTab(tabId, btn) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
