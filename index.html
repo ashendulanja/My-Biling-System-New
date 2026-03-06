@@ -15,7 +15,8 @@
 
     <style>
         :root {
-            var(--primary): #106291;       
+            /* Typo Fixed Here! */
+            --primary: #106291;       
             --secondary: #0a405e;     
             --text-main: #111827;
             --text-muted: #6b7280;
@@ -71,7 +72,7 @@
         
         .login-box::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
-            background: #106291;
+            background: var(--primary);
         }
 
         @keyframes slideUpFade {
@@ -80,7 +81,7 @@
         }
 
         .app-brand { font-weight: 900; font-size: 32px; letter-spacing: -1px; margin-bottom: 5px; color: var(--black); }
-        .app-brand span { color: #106291; }
+        .app-brand span { color: var(--primary); }
         .login-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 35px; font-weight: 500; }
         
         .input-group { position: relative; margin-bottom: 18px; }
@@ -90,12 +91,12 @@
             border: 2px solid var(--border); border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 600;
             box-sizing: border-box; outline: none; transition: 0.3s; background: #f9fafb; color: var(--black);
         }
-        .input-group input:focus { border-color: #106291; background: var(--white); box-shadow: 0 0 0 4px rgba(16, 98, 145, 0.1);}
-        .input-group input:focus + i, .input-group input:focus ~ i { color: #106291; }
+        .input-group input:focus { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 4px rgba(16, 98, 145, 0.1);}
+        .input-group input:focus + i, .input-group input:focus ~ i { color: var(--primary); }
 
         .login-box .btn { 
             margin-top: 15px; border-radius: 14px; padding: 16px; font-size: 16px; letter-spacing: 0.5px;
-            background: #106291; color: var(--white); font-weight: 700; border: none; cursor: pointer;
+            background: var(--primary); color: var(--white); font-weight: 700; border: none; cursor: pointer;
             width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(16, 98, 145, 0.2);
         }
         .login-box .btn:hover { 
@@ -103,10 +104,10 @@
         }
         
         .login-options { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 25px; margin-top: 5px; font-weight: 600;}
-        .forgot-link { color: #106291; cursor: pointer; transition: 0.2s; }
+        .forgot-link { color: var(--primary); cursor: pointer; transition: 0.2s; }
         .forgot-link:hover { color: var(--secondary); text-decoration: underline; }
         .eye-icon { position: absolute; right: 18px; top: 16px; cursor: pointer; font-size: 18px; color: #9ca3af; transition: 0.2s; z-index: 10;}
-        .eye-icon:hover { color: #106291; }
+        .eye-icon:hover { color: var(--primary); }
 
         /* RECOVERY SCREEN CSS */
         #recoveryScreen { 
@@ -128,10 +129,10 @@
         
         .nexa-loader-content { text-align: center; width: 100%; max-width: 300px; padding: 20px;}
         .nexa-welcome { font-size: 24px; font-weight: 800; margin-bottom: 10px; color: var(--white); }
-        .nexa-welcome span { color: #106291; }
+        .nexa-welcome span { color: var(--primary); }
         
         .progress-container { width: 100%; height: 6px; background: #1f2937; border-radius: 10px; overflow: hidden; margin: 30px 0 15px 0; }
-        .progress-bar { height: 100%; background: #106291; width: 0%; transition: width 0.1s linear; border-radius: 10px; box-shadow: 0 0 10px #106291;}
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.1s linear; border-radius: 10px; box-shadow: 0 0 10px var(--primary);}
         
         .loader-status { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #9ca3af; letter-spacing: 0.5px;}
 
@@ -140,7 +141,7 @@
         .custom-dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto; z-index: 100; display: none; margin-top: 4px; }
         .custom-dropdown div { padding: 10px 15px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
         .custom-dropdown div:last-child { border-bottom: none; }
-        .custom-dropdown div:hover { background: #f3f4f6; color: #106291; font-weight: 600; }
+        .custom-dropdown div:hover { background: #f3f4f6; color: var(--primary); font-weight: 600; }
         .custom-dropdown strong { display: block; font-size: 14px; margin-bottom: 2px; color: var(--black); }
         .custom-dropdown span { font-size: 11px; color: var(--text-muted); }
 
@@ -150,12 +151,12 @@
         
         .profile-header { background: var(--black); padding: 15px 25px; display: flex; align-items: center; justify-content: space-between; gap: 15px;}
         .profile-header select { flex: 1; padding: 12px; font-weight: 700; border-radius: 10px; border: none; background: #1f2937; color: var(--white); font-size: 14px; cursor: pointer; outline: none;}
-        .btn-save-profile { background: #106291; color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s;}
+        .btn-save-profile { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s;}
         .btn-save-profile:hover { opacity: 0.9; transform: translateY(-1px);}
 
         .tabs { display: flex; background: var(--white); border-bottom: 1px solid var(--border); flex-wrap: wrap;}
         .tab-btn { flex: 1; padding: 15px 10px; text-align: center; font-weight: 700; color: var(--text-muted); cursor: pointer; border: none; background: transparent; transition: all 0.2s; font-size: 13px; font-family: inherit; white-space: nowrap;}
-        .tab-btn.active { color: #106291; box-shadow: inset 0 -3px 0 #106291; background: rgba(16, 98, 145, 0.02);}
+        .tab-btn.active { color: var(--primary); box-shadow: inset 0 -3px 0 var(--primary); background: rgba(16, 98, 145, 0.02);}
         .tab-btn:hover:not(.active) { background: #f9fafb; color: var(--black);}
 
         .tab-content { padding: 30px; overflow-y: auto; flex: 1; display: none; }
@@ -169,36 +170,36 @@
         
         label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
         input[type="text"], input[type="number"], input[type="date"], input[type="password"], select, textarea { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; color: var(--black); transition: all 0.2s; background: #f9fafb; font-weight: 500;}
-        input:focus, select:focus, textarea:focus { border-color: #106291; outline: none; background: var(--white); box-shadow: 0 0 0 3px rgba(16, 98, 145, 0.1); }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; background: var(--white); box-shadow: 0 0 0 3px rgba(16, 98, 145, 0.1); }
         textarea { resize: vertical; height: 80px; }
         
         .color-row { display: flex; gap: 15px; margin-bottom: 15px; }
         .color-box { flex: 1; }
         input[type="color"] { width: 100%; height: 45px; border: none; border-radius: 10px; cursor: pointer; padding: 0; background: none;}
-        input[type="range"] { width: 100%; margin-bottom: 15px; cursor: pointer; accent-color: #106291; }
+        input[type="range"] { width: 100%; margin-bottom: 15px; cursor: pointer; accent-color: var(--primary); }
         
         .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; background: #f0f9ff; padding: 15px; border-radius: 10px; border: 1px solid #bae6fd;}
-        .checkbox-wrapper input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: #106291; }
-        .checkbox-wrapper label { margin: 0; font-size: 14px; color: #106291; cursor: pointer; font-weight: 600;}
+        .checkbox-wrapper input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: var(--primary); }
+        .checkbox-wrapper label { margin: 0; font-size: 14px; color: var(--primary); cursor: pointer; font-weight: 600;}
 
-        .btn { background: #106291; color: var(--white); border: none; padding: 15px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.2s; font-family: inherit;}
+        .btn { background: var(--primary); color: var(--white); border: none; padding: 15px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.2s; font-family: inherit;}
         .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
         .btn-add { background: var(--white); color: var(--black); border: 2px solid var(--border); }
-        .btn-add:hover { background: #106291; color: white; border-color: #106291;}
+        .btn-add:hover { background: var(--primary); color: white; border-color: var(--primary);}
         .btn-print { margin: 20px 30px 30px 30px; width: calc(100% - 60px); background: var(--black); color: white; font-size: 15px;}
         .btn-print:hover { background: #1f2937; }
 
         .item-entry-box { background: #f9fafb; padding: 25px; border-radius: 14px; border: 1px solid var(--border); transition: all 0.3s;}
 
         .preview { flex: 1.5; background: var(--white); border-radius: 0; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1); min-height: 1123px; width: 794px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; overflow: visible;}
-        .top-accent { height: 8px; width: 100%; background: #106291; }
+        .top-accent { height: 8px; width: 100%; background: var(--primary); }
         .preview-content { padding: 40px 45px; flex: 1; display: flex; flex-direction: column; }
 
         .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; } 
         .logo-container img { width: var(--logo-width); max-height: 80px; object-fit: contain; }
         .doc-title-wrapper { text-align: right; }
         .doc-title { font-size: 34px; color: var(--black); margin: 0 0 5px 0; font-weight: 900; letter-spacing: -1px; text-transform: uppercase;}
-        .doc-number { font-size: 16px; color: #106291; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 12px;}
+        .doc-number { font-size: 16px; color: var(--primary); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 12px;}
         .doc-dates { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
         .date-line { font-size: 13px; color: var(--text-main); }
         .date-line strong { color: var(--text-muted); font-weight: 600; display: inline-block; width: 85px; text-align: right; margin-right: 10px;}
@@ -223,14 +224,14 @@
         
         .item-main { font-weight: 800; display: block; margin-bottom: 4px; color: var(--black); font-size: 14px;}
         .item-sub { font-size: 12px; color: var(--text-muted); white-space: pre-line; display: block;}
-        .warranty-badge { display: inline-block; color: #106291; font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 700; margin-top: 6px; border: 1px solid rgba(16,98,145,0.2); background: rgba(16,98,145,0.05);}
+        .warranty-badge { display: inline-block; color: var(--primary); font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 700; margin-top: 6px; border: 1px solid rgba(16,98,145,0.2); background: rgba(16,98,145,0.05);}
 
         .summary-section { display: flex; justify-content: flex-end; margin-top: 10px; margin-bottom: 20px;}
         .summary-box { width: 320px; }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: var(--text-main); padding: 0 16px; font-weight: 500;}
         .summary-row.discount-row { color: #ef4444; font-weight: 700; }
         
-        .summary-total { display: flex; justify-content: space-between; margin-top: 15px; padding: 15px 20px; background: #106291; color: var(--white); border-radius: 12px; font-size: 18px; font-weight: 900; box-shadow: 0 10px 15px -3px rgba(16, 98, 145, 0.3);}
+        .summary-total { display: flex; justify-content: space-between; margin-top: 15px; padding: 15px 20px; background: var(--primary); color: var(--white); border-radius: 12px; font-size: 18px; font-weight: 900; box-shadow: 0 10px 15px -3px rgba(16, 98, 145, 0.3);}
 
         .bank-details-box { display: flex; align-items: center; gap: 18px; background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 15px 20px; margin-bottom: 20px; width: max-content; min-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
         .bank-logo-area { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: #f9fafb; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; flex-shrink: 0;}
@@ -256,21 +257,21 @@
 
         .del-btn, .edit-btn { background: transparent; border: none; padding: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; opacity: 0;}
         .del-btn { color: #ef4444; }
-        .edit-btn { color: #106291; }
+        .edit-btn { color: var(--primary); }
         tr:hover .del-btn, tr:hover .edit-btn { opacity: 1; }
         .del-btn:hover, .edit-btn:hover { transform: scale(1.2); }
         .action-col { width: 65px; padding: 0 !important; vertical-align: middle !important; text-align: center; background: transparent !important; white-space: nowrap;}
 
         .db-list-item { display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:#f9fafb; border:1px solid var(--border); margin-bottom:10px; border-radius:10px;}
-        .search-bar { border: 2px solid #106291 !important; background: var(--white) !important; font-weight: 600; box-shadow: 0 4px 6px rgba(16, 98, 145, 0.05);}
+        .search-bar { border: 2px solid var(--primary) !important; background: var(--white) !important; font-weight: 600; box-shadow: 0 4px 6px rgba(16, 98, 145, 0.05);}
 
         .hist-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 15px; transition: all 0.2s; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
-        .hist-card:hover { border-color: #106291; box-shadow: 0 10px 15px -3px rgba(16, 98, 145, 0.1); transform: translateY(-2px); }
+        .hist-card:hover { border-color: var(--primary); box-shadow: 0 10px 15px -3px rgba(16, 98, 145, 0.1); transform: translateY(-2px); }
         .hist-info h4 { margin: 0 0 6px 0; color: var(--black); font-size: 16px; font-weight: 800;}
         .hist-info p { margin: 0; font-size: 13px; color: var(--text-muted); font-weight: 600;}
         .hist-meta { text-align: right; }
-        .hist-meta .hist-total { font-size: 16px; font-weight: 800; color: #106291; margin-bottom: 6px; display: block;}
-        .hist-badge { font-size: 10px; padding: 4px 10px; border-radius: 6px; font-weight: 800; text-transform: uppercase; background: #e0f2fe; color: #106291;}
+        .hist-meta .hist-total { font-size: 16px; font-weight: 800; color: var(--primary); margin-bottom: 6px; display: block;}
+        .hist-badge { font-size: 10px; padding: 4px 10px; border-radius: 6px; font-weight: 800; text-transform: uppercase; background: #e0f2fe; color: var(--primary);}
         .hist-badge.quo { background: #fef3c7; color: #d97706; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 100000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(4px);}
@@ -283,7 +284,7 @@
         .modal-btn { padding: 14px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; font-size: 14px; flex: 1; transition: 0.2s;}
         .modal-btn:hover { opacity: 0.9; transform: translateY(-2px);}
         .modal-btn-cancel { background: #f3f4f6; color: var(--text-main); }
-        .modal-btn-confirm { background: #106291; color: white; }
+        .modal-btn-confirm { background: var(--primary); color: white; }
         .modal-btn-danger { background: #ef4444; color: white; }
 
         @media screen and (max-width: 850px) {
@@ -372,7 +373,7 @@
         
         <div class="login-options">
             <label style="display:flex; align-items:center; gap:6px; margin:0; cursor:pointer; color: var(--text-main);">
-                <input type="checkbox" id="rememberMe" style="width:16px; height:16px; margin:0; accent-color:#106291;"> Remember me
+                <input type="checkbox" id="rememberMe" style="width:16px; height:16px; margin:0; accent-color:var(--primary);"> Remember me
             </label>
             <span class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</span>
         </div>
@@ -439,7 +440,7 @@
             </div>
 
             <div class="control-group item-entry-box" id="itemInputBox">
-                <h3 style="color: #106291;" id="itemEntryTitle">Add Item</h3>
+                <h3 style="color: var(--primary);" id="itemEntryTitle">Add Item</h3>
                 <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                     <div class="dropdown-wrapper" style="flex: 2;">
                         <input type="text" id="itemName" autocomplete="off" placeholder="Search or Type Item Name" style="margin-bottom: 0;" oninput="filterItemDropdown()" onfocus="filterItemDropdown()">
@@ -797,7 +798,7 @@
         ];
 
         let currentStep = 0;
-        let duration = 3000; // 3 seconds total
+        let duration = 3000; 
         let intervalTime = duration / 100;
         let percent = 0;
 
@@ -821,7 +822,6 @@
         }, intervalTime);
     }
 
-
     // ==========================================
     // 4. APP VARIABLES
     // ==========================================
@@ -837,8 +837,9 @@
     let docHistory = [];
     let profileList = [];
     let currentBizListenerRef = null;
-    
     let isAppInitialized = false;
+    
+    let systemAuth = { user: "Ashen9666@", pass: "Ashen9666@" };
     const defaultProfileList = [{ id: "biz1", name: "🏢 Default Business" }];
 
     // ==========================================
@@ -900,7 +901,6 @@
         await supabaseClient.auth.signOut();
     }
 
-    // Custom In-App Prompt for Password Recovery Request
     function handleForgotPassword() {
         showPromptModal("Password Recovery", "Enter the email address you registered with:", async function(email) {
             if (!email || email.trim() === "") return;
@@ -970,9 +970,7 @@
       try {
           const { data, error } = await supabaseClient.from('json_store').select('data').eq('id', id).single();
           if (error) { callback(null); } else { dbCache[id] = data ? data.data : null; callback(dbCache[id]); }
-      } catch(e) {
-          callback(null);
-      }
+      } catch(e) { callback(null); }
     }
 
     async function saveDb(id, data) {
@@ -1003,7 +1001,6 @@
                 document.getElementById('profileSelect').value = profileList[0].id;
             }
 
-            // Only run loadActiveProfileData on first load to prevent refreshing while working
             if (!isAppInitialized) {
                 isAppInitialized = true;
                 loadActiveProfileData(); 
@@ -1019,14 +1016,12 @@
         let activeBiz = document.getElementById('profileSelect').value;
         if (!activeBiz) return; 
 
-        // Prevent redundant reloading if same profile is clicked
         if (currentBizListenerRef === activeBiz) return;
 
-        // Instantly clear old UI data so profiles don't mix
+        // Clear UI data instantly so profiles don't mix visually
         customersDB = []; productsDB = []; docHistory = [];
         renderDBLists(); renderHistory(); resetInvoiceForm();
 
-        // Clear old listeners
         if (currentBizListenerRef) {
             delete dbListeners['profiles/' + currentBizListenerRef];
             delete dbListeners['customers/' + currentBizListenerRef];
@@ -1037,7 +1032,6 @@
         currentBizListenerRef = activeBiz;
         originalDocNo = null; 
 
-        // Load new data
         onDbChange('profiles/' + activeBiz, (snap) => {
             let profile = snap || { compName: "New Business", primaryColor: "#106291", secondaryColor: "#0a405e", logoSize: 140, sigSize: 120, sigType: "electronic" };
             
@@ -1095,23 +1089,16 @@
     }
 
     // ==========================================
-    // CUSTOM DROPDOWN LOGIC
+    // UI & UTILITY FUNCTIONS
     // ==========================================
     function filterCustDropdown() {
         let term = document.getElementById('custName').value.toLowerCase();
-        let drop = document.getElementById('custCustomDropdown');
-        drop.innerHTML = '';
-        let hasItems = false;
+        let drop = document.getElementById('custCustomDropdown'); drop.innerHTML = ''; let hasItems = false;
         customersDB.forEach(c => {
             if (c.name.toLowerCase().includes(term) || c.address.toLowerCase().includes(term)) {
-                hasItems = true;
-                let div = document.createElement('div');
+                hasItems = true; let div = document.createElement('div');
                 div.innerHTML = `<strong>${c.name}</strong><span>${c.address || ''}</span>`;
-                div.onclick = function() {
-                    document.getElementById('custName').value = c.name;
-                    document.getElementById('custAddress').value = c.address;
-                    drop.style.display = 'none'; updateView();
-                };
+                div.onclick = function() { document.getElementById('custName').value = c.name; document.getElementById('custAddress').value = c.address; drop.style.display = 'none'; updateView(); };
                 drop.appendChild(div);
             }
         });
@@ -1120,20 +1107,12 @@
 
     function filterItemDropdown() {
         let term = document.getElementById('itemName').value.toLowerCase();
-        let drop = document.getElementById('itemCustomDropdown');
-        drop.innerHTML = '';
-        let hasItems = false;
+        let drop = document.getElementById('itemCustomDropdown'); drop.innerHTML = ''; let hasItems = false;
         productsDB.forEach(p => {
             if (p.name.toLowerCase().includes(term) || (p.desc && p.desc.toLowerCase().includes(term))) {
-                hasItems = true;
-                let div = document.createElement('div');
+                hasItems = true; let div = document.createElement('div');
                 div.innerHTML = `<strong>${p.name}</strong><span>LKR ${formatMoney(p.price)}</span>`;
-                div.onclick = function() {
-                    document.getElementById('itemName').value = p.name;
-                    document.getElementById('itemPrice').value = p.price;
-                    if(p.desc) document.getElementById('itemDesc').value = p.desc;
-                    drop.style.display = 'none';
-                };
+                div.onclick = function() { document.getElementById('itemName').value = p.name; document.getElementById('itemPrice').value = p.price; if(p.desc) document.getElementById('itemDesc').value = p.desc; drop.style.display = 'none'; };
                 drop.appendChild(div);
             }
         });
@@ -1145,9 +1124,6 @@
         if (!e.target.closest('#itemName') && !e.target.closest('#itemCustomDropdown')) { document.getElementById('itemCustomDropdown').style.display = 'none'; }
     });
 
-    // ==========================================
-    // ALL OTHER FUNCTIONS
-    // ==========================================
     function exportToCSV() {
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "--- CUSTOMERS ---\nName,Address\n";
@@ -1167,13 +1143,9 @@
     function exportToPDF(type) {
         const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFontSize(18);
         if(type === 'customers') {
-            doc.text("Customer Database", 14, 20);
-            doc.autoTable({ startY: 25, head: [['Customer Name', 'Address/Contact']], body: customersDB.map(c => [c.name, c.address]) });
-            doc.save("Customers_Database.pdf");
+            doc.text("Customer Database", 14, 20); doc.autoTable({ startY: 25, head: [['Customer Name', 'Address/Contact']], body: customersDB.map(c => [c.name, c.address]) }); doc.save("Customers_Database.pdf");
         } else {
-            doc.text("Item/Product Database", 14, 20);
-            doc.autoTable({ startY: 25, head: [['Item Name', 'Description', 'Price (LKR)']], body: productsDB.map(p => [p.name, p.desc || '-', formatMoney(p.price)]) });
-            doc.save("Items_Database.pdf");
+            doc.text("Item/Product Database", 14, 20); doc.autoTable({ startY: 25, head: [['Item Name', 'Description', 'Price (LKR)']], body: productsDB.map(p => [p.name, p.desc || '-', formatMoney(p.price)]) }); doc.save("Items_Database.pdf");
         }
     }
 
@@ -1181,9 +1153,7 @@
         let activeBiz = document.getElementById('profileSelect').value;
         let profileToSave = {
             compName: document.getElementById('compName').value, compAddress: document.getElementById('compAddress').value, primaryColor: document.getElementById('primaryColor').value, secondaryColor: document.getElementById('secondaryColor').value, logoSize: document.getElementById('logoSize').value, sigSize: document.getElementById('sigSize').value, sigType: document.getElementById('sigType').value, bankName: document.getElementById('bankName').value, accName: document.getElementById('accName').value, accNo: document.getElementById('accNo').value, bankBranch: document.getElementById('bankBranch').value, note1Heading: document.getElementById('note1Heading').value, notes: document.getElementById('notes').value, note2Heading: document.getElementById('note2Heading').value, note2Text: document.getElementById('note2Text').value,
-            logoBase64: document.getElementById('logoPreview').style.display === 'block' ? document.getElementById('logoPreview').src : null,
-            bankLogoBase64: document.getElementById('bankLogoPreview').style.display === 'block' ? document.getElementById('bankLogoPreview').src : null,
-            sigBase64: document.getElementById('sigPreview').style.display === 'block' ? document.getElementById('sigPreview').src : null
+            logoBase64: document.getElementById('logoPreview').style.display === 'block' ? document.getElementById('logoPreview').src : null, bankLogoBase64: document.getElementById('bankLogoPreview').style.display === 'block' ? document.getElementById('bankLogoPreview').src : null, sigBase64: document.getElementById('sigPreview').style.display === 'block' ? document.getElementById('sigPreview').src : null
         };
         saveDb('profiles/' + activeBiz, profileToSave).then(() => { 
             localStorage.setItem('nexapay_last_user', profileToSave.compName);
@@ -1196,16 +1166,9 @@
             if (!name || name.trim() === "") return;
             let newId = "biz_" + new Date().getTime();
             profileList.push({ id: newId, name: name.trim() });
-            
-            renderProfileDropdown();
-            document.getElementById('profileSelect').value = newId;
-            
+            renderProfileDropdown(); document.getElementById('profileSelect').value = newId;
             await saveDb('global/profileList', profileList);
-            
-            // We manually trigger the load for the newly selected profile
-            currentBizListenerRef = null; 
-            loadActiveProfileData(); 
-            
+            currentBizListenerRef = null; loadActiveProfileData(); 
             showAlertModal("Success", `Profile '${name.trim()}' created!`);
         }, false);
     }
@@ -1221,28 +1184,17 @@
     function deleteCurrentProfile() {
         if (profileList.length <= 1) return showAlertModal("Denied", "You must have at least one active profile.");
         let activeId = document.getElementById('profileSelect').value; let profile = profileList.find(p => p.id === activeId);
-        
         showConfirmModal("Delete Profile", `Delete '${profile.name}' permanently from all devices?`, "Yes, Delete", "modal-btn-danger", async function() {
             profileList = profileList.filter(p => p.id !== activeId);
-            
-            document.getElementById('profileSelect').value = profileList[0].id;
-            renderProfileDropdown();
-            
+            document.getElementById('profileSelect').value = profileList[0].id; renderProfileDropdown();
             await saveDb('global/profileList', profileList);
-            
-            if(supabaseClient) {
-                supabaseClient.from('json_store').delete().in('id', ['profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId]).then();
-            }
-            
-            // Load the newly selected profile automatically
-            currentBizListenerRef = null;
-            loadActiveProfileData();
+            if(supabaseClient) { supabaseClient.from('json_store').delete().in('id', ['profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId]).then(); }
+            currentBizListenerRef = null; loadActiveProfileData();
         });
     }
 
     function saveCustomerDB() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        let name = document.getElementById('dbCustName').value.trim(); let address = document.getElementById('dbCustAddress').value.trim();
+        let activeBiz = document.getElementById('profileSelect').value; let name = document.getElementById('dbCustName').value.trim(); let address = document.getElementById('dbCustAddress').value.trim();
         if(!name) return showAlertModal("Error", "Customer Name is required.");
         if (editingDbCustIndex !== -1) {
             customersDB[editingDbCustIndex] = {name, address}; editingDbCustIndex = -1;
@@ -1255,15 +1207,10 @@
         document.getElementById('dbCustName').value = ''; document.getElementById('dbCustAddress').value = '';
     }
 
-    function deleteCustomerDB(index) {
-        let activeBiz = document.getElementById('profileSelect').value;
-        customersDB.splice(index, 1);
-        saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists());
-    }
+    function deleteCustomerDB(index) { let activeBiz = document.getElementById('profileSelect').value; customersDB.splice(index, 1); saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists()); }
 
     function saveItemDB() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        let name = document.getElementById('dbItemName').value.trim(); let desc = document.getElementById('dbItemDesc').value.trim(); let price = parseFloat(document.getElementById('dbItemPrice').value) || 0;
+        let activeBiz = document.getElementById('profileSelect').value; let name = document.getElementById('dbItemName').value.trim(); let desc = document.getElementById('dbItemDesc').value.trim(); let price = parseFloat(document.getElementById('dbItemPrice').value) || 0;
         if(!name) return showAlertModal("Error", "Item Name is required.");
         if (editingDbItemIndex !== -1) {
             productsDB[editingDbItemIndex] = {name, desc, price}; editingDbItemIndex = -1;
@@ -1276,17 +1223,11 @@
         document.getElementById('dbItemName').value = ''; document.getElementById('dbItemDesc').value = ''; document.getElementById('dbItemPrice').value = '';
     }
 
-    function deleteItemDB(index) {
-        let activeBiz = document.getElementById('profileSelect').value;
-        productsDB.splice(index, 1);
-        saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists());
-    }
+    function deleteItemDB(index) { let activeBiz = document.getElementById('profileSelect').value; productsDB.splice(index, 1); saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists()); }
 
     function saveToHistory() {
         let activeBiz = document.getElementById('profileSelect').value; let docNo = document.getElementById('docNo').value;
-        let entry = {
-            docNo: docNo, docType: document.getElementById('docType').value, date: document.getElementById('docDate').value, validDate: document.getElementById('validDate').value, custName: document.getElementById('custName').value || 'Unknown Customer', custAddress: document.getElementById('custAddress').value, total: document.getElementById('grandTotal').innerText, items: JSON.parse(JSON.stringify(itemsList)), timestamp: new Date().getTime()
-        };
+        let entry = { docNo: docNo, docType: document.getElementById('docType').value, date: document.getElementById('docDate').value, validDate: document.getElementById('validDate').value, custName: document.getElementById('custName').value || 'Unknown Customer', custAddress: document.getElementById('custAddress').value, total: document.getElementById('grandTotal').innerText, items: JSON.parse(JSON.stringify(itemsList)), timestamp: new Date().getTime() };
         let existingIndex = docHistory.findIndex(h => h.docNo === docNo);
         if (existingIndex >= 0) docHistory[existingIndex] = entry; else docHistory.push(entry); 
         saveDb('history/' + activeBiz, docHistory).then(()=> renderHistory());
@@ -1303,18 +1244,9 @@
     }
 
     function renderProfileDropdown() {
-        let select = document.getElementById('profileSelect'); 
-        let currentVal = select.value; 
-        select.innerHTML = '';
-        profileList.forEach(p => { 
-            let opt = document.createElement('option'); 
-            opt.value = p.id; 
-            opt.innerText = p.name; 
-            select.appendChild(opt); 
-        });
-        if (currentVal && profileList.some(p => p.id === currentVal)) {
-            select.value = currentVal;
-        }
+        let select = document.getElementById('profileSelect'); let currentVal = select.value; select.innerHTML = '';
+        profileList.forEach(p => { let opt = document.createElement('option'); opt.value = p.id; opt.innerText = p.name; select.appendChild(opt); });
+        if (currentVal && profileList.some(p => p.id === currentVal)) { select.value = currentVal; }
     }
 
     function handleDocDateChange() {
@@ -1345,10 +1277,8 @@
         let docNo = document.getElementById('docNo').value.trim();
         if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
         if(itemsList.length === 0) return showAlertModal("Error", "Please add at least one item to the document!");
-
         let exists = docHistory.some(h => h.docNo === docNo);
         if (exists && originalDocNo !== docNo) return showAlertModal("Duplicate Number Found", `Document Number ${docNo} already exists in the history!`);
-
         let title = exists ? "Update Document" : "Save Document"; let msg = exists ? "Update this document in the cloud history?" : "Save and print this new document?";
         
         showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
@@ -1362,15 +1292,11 @@
     }
 
     function renderHistory() {
-        let searchTerm = (document.getElementById('histSearch').value || '').toLowerCase();
-        let fromDate = document.getElementById('histFrom').value; let toDate = document.getElementById('histTo').value;
+        let searchTerm = (document.getElementById('histSearch').value || '').toLowerCase(); let fromDate = document.getElementById('histFrom').value; let toDate = document.getElementById('histTo').value;
         let sortedHistory = [...docHistory].sort((a, b) => b.timestamp - a.timestamp); let html = '';
-        
         sortedHistory.forEach((h, index) => {
             let matchSearch = h.custName.toLowerCase().includes(searchTerm) || h.docNo.toLowerCase().includes(searchTerm);
-            let matchFrom = fromDate ? (new Date(h.date) >= new Date(fromDate)) : true;
-            let matchTo = toDate ? (new Date(h.date) <= new Date(toDate)) : true;
-
+            let matchFrom = fromDate ? (new Date(h.date) >= new Date(fromDate)) : true; let matchTo = toDate ? (new Date(h.date) <= new Date(toDate)) : true;
             if (matchSearch && matchFrom && matchTo) {
                 let badgeClass = h.docType === 'QUOTATION' ? 'hist-badge quo' : 'hist-badge'; let originalIndex = docHistory.findIndex(orig => orig.docNo === h.docNo);
                 html += `<div class="hist-card" onclick="loadHistoryItem(${originalIndex})"><div class="hist-info"><h4>${h.custName}</h4><p>${h.docNo} • ${formatDate(h.date)}</p></div><div class="hist-meta"><span class="hist-total">${h.total}</span><div style="margin-top: 5px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;"><span class="${badgeClass}">${h.docType}</span><button class="del-btn" style="opacity:1; padding: 0;" onclick="deleteHistoryItem(event, '${h.docNo}')" title="Delete">🗑️</button></div></div></div>`;
@@ -1382,11 +1308,9 @@
 
     function loadHistoryItem(index) {
         let h = docHistory[index]; if(!h) return;
-        document.getElementById('docType').value = h.docType; document.getElementById('docNo').value = h.docNo;
-        document.getElementById('docDate').value = h.date; document.getElementById('validDate').value = h.validDate || '';
+        document.getElementById('docType').value = h.docType; document.getElementById('docNo').value = h.docNo; document.getElementById('docDate').value = h.date; document.getElementById('validDate').value = h.validDate || '';
         document.getElementById('custName').value = h.custName !== 'Unknown Customer' ? h.custName : ''; document.getElementById('custAddress').value = h.custAddress || '';
-        itemsList = JSON.parse(JSON.stringify(h.items)); originalDocNo = h.docNo;
-        document.getElementById('displayDocType').innerText = h.docType;
+        itemsList = JSON.parse(JSON.stringify(h.items)); originalDocNo = h.docNo; document.getElementById('displayDocType').innerText = h.docType;
         if(h.docType === 'QUOTATION') { document.getElementById('validDateControl').style.display = 'block'; document.getElementById('displayValidDateArea').style.display = 'block'; } 
         else { document.getElementById('validDateControl').style.display = 'none'; document.getElementById('displayValidDateArea').style.display = 'none'; }
         renderTable(); updateView(); switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
@@ -1403,7 +1327,6 @@
             }
         });
         document.getElementById('customerDBList').innerHTML = custUIHTML;
-
         let prodUIHTML = '';
         productsDB.forEach((p, index) => {
             if (p.name.toLowerCase().includes(itemSearchTerm) || (p.desc && p.desc.toLowerCase().includes(itemSearchTerm))) {
@@ -1413,15 +1336,8 @@
         document.getElementById('itemDBList').innerHTML = prodUIHTML;
     }
 
-    function editCustomerDB(index) {
-        let cust = customersDB[index]; document.getElementById('dbCustName').value = cust.name; document.getElementById('dbCustAddress').value = cust.address; editingDbCustIndex = index;
-        let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)";
-    }
-
-    function editItemDB(index) {
-        let item = productsDB[index]; document.getElementById('dbItemName').value = item.name; document.getElementById('dbItemDesc').value = item.desc; document.getElementById('dbItemPrice').value = item.price; editingDbItemIndex = index;
-        let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)";
-    }
+    function editCustomerDB(index) { let cust = customersDB[index]; document.getElementById('dbCustName').value = cust.name; document.getElementById('dbCustAddress').value = cust.address; editingDbCustIndex = index; let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)"; }
+    function editItemDB(index) { let item = productsDB[index]; document.getElementById('dbItemName').value = item.name; document.getElementById('dbItemDesc').value = item.desc; document.getElementById('dbItemPrice').value = item.price; editingDbItemIndex = index; let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)"; }
 
     function switchTab(tabId, btn) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
