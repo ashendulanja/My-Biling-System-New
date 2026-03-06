@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
 
@@ -29,13 +28,13 @@
             --theme-fade: rgba(15, 23, 42, 0.05);
         }
 
+        /* Prevent Text Selection to block copying text manually */
         body { 
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif; 
             background: var(--bg-body); 
             margin: 0; 
             padding: 20px; 
             color: var(--text-main); 
-            /* Prevent text selection to add more security */
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
@@ -50,11 +49,11 @@
             user-select: auto;
         }
         
-        /* --- LOGIN SCREEN CSS --- */
+        /* LOGIN SCREEN CSS */
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .login-box { background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border); }
         .login-box h2 { color: var(--primary); margin-top: 0; margin-bottom: 25px; font-weight: 800; font-size: 24px; }
-        .login-box input[type="text"], .login-box input[type="password"] { width: 100%; padding: 14px; margin-bottom: 15px; border: 2px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        .login-box input[type="text"], .login-box input[type="email"], .login-box input[type="password"] { width: 100%; padding: 14px; margin-bottom: 15px; border: 2px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.3s; }
         .login-box input:focus { border-color: var(--secondary); }
         .login-box .btn { margin-top: 10px; }
         .login-box .login-options { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 20px; }
@@ -64,7 +63,7 @@
         .eye-icon { position: absolute; right: 15px; top: 14px; cursor: pointer; font-size: 16px; color: var(--text-muted); opacity: 0.7; transition: 0.2s;}
         .eye-icon:hover { opacity: 1; }
 
-        /* --- CUSTOM DROPDOWN CSS --- */
+        /* CUSTOM DROPDOWN CSS */
         .dropdown-wrapper { position: relative; width: 100%; }
         .custom-dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto; z-index: 100; display: none; margin-top: 4px; }
         .custom-dropdown div { padding: 10px 15px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
@@ -273,8 +272,9 @@
 
 <div id="loginScreen">
     <div class="login-box">
-        <h2>🔒 System Login</h2>
-        <input type="text" id="loginUser" placeholder="Username">
+        <h2>🔒 Secure Login</h2>
+        <input type="email" id="loginUser" placeholder="Email Address (e.g. admin@invoice.com)">
+        
         <div class="password-container">
             <input type="password" id="loginPass" placeholder="Password">
             <span class="eye-icon" onclick="togglePassword('loginPass')">👁️</span>
@@ -448,15 +448,12 @@
                     <span class="eye-icon" onclick="togglePassword('oldPassword')">👁️</span>
                 </div>
                 
-                <label>Change Username:</label>
-                <input type="text" id="newUsername" placeholder="Enter new username">
-                
                 <label>Change Password:</label>
                 <div class="password-container">
                     <input type="password" id="newPassword" placeholder="Enter new password">
                     <span class="eye-icon" onclick="togglePassword('newPassword')">👁️</span>
                 </div>
-                <button class="btn btn-add" onclick="updateCredentials()">🔒 Update Login Details</button>
+                <button class="btn btn-add" onclick="updateCredentials()">🔒 Update Password</button>
             </div>
             
             <div class="control-group">
@@ -598,24 +595,139 @@
 
 <script>
     // ==========================================
-    // 1. SUPABASE CONFIGURATION 
+    // 1. SUPABASE CONFIGURATION
     // ==========================================
     const supabaseUrl = 'https://gseawgjmvcpaxgnqsxry.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZWF3Z2ptdmNwYXhnbnFzeHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MjM5NzEsImV4cCI6MjA4NzM5OTk3MX0.u2nbmLNBxvwfbOhb7JtXpTo0Ax6pW0OjjWhQe1VJBNM';
     
-    let supabaseClient = null;
-    try {
-        if(window.supabase) {
-            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    let supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // ==========================================
+    // 2. REAL AUTHENTICATION & SECURITY LOGIC
+    // ==========================================
+    
+    function togglePassword(inputId) {
+        let input = document.getElementById(inputId);
+        input.type = input.type === "password" ? "text" : "password";
+    }
+
+    async function setupAuthButtons() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            showApp();
+        } else {
+            document.getElementById('loginScreen').style.display = 'flex';
         }
-    } catch(e) {
-        console.error("Supabase initialization error");
+        
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'flex';
+            }
+        });
+    }
+
+    async function attemptLogin() {
+        let email = document.getElementById('loginUser').value.trim();
+        let pass = document.getElementById('loginPass').value.trim();
+        
+        if (!email || !pass) return showAlertModal("Error", "Please enter your Email and Password");
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: pass,
+        });
+
+        if (error) {
+            showAlertModal("Login Failed", "Incorrect Email or Password.");
+        } else {
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            showApp();
+        }
+    }
+
+    async function logout() {
+        await supabaseClient.auth.signOut();
+    }
+
+    async function updateCredentials() {
+        let oldP = document.getElementById('oldPassword').value.trim();
+        let newP = document.getElementById('newPassword').value.trim();
+        
+        if (!oldP || !newP) return showAlertModal("Error", "Please enter both Current and New passwords.");
+
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return showAlertModal("Error", "You are not logged in.");
+
+        const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+            email: user.email,
+            password: oldP
+        });
+
+        if (signInError) {
+            return showAlertModal("Error", "Current password is incorrect! You cannot make changes.");
+        }
+
+        showConfirmModal("Confirm Change", "Are you sure you want to update the password?", "Update", "modal-btn-confirm", async function() {
+            const { error: updateError } = await supabaseClient.auth.updateUser({ password: newP });
+            if (updateError) {
+                showAlertModal("Error", updateError.message);
+            } else {
+                document.getElementById('oldPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                showAlertModal("Success", "Password updated successfully.");
+            }
+        });
+    }
+
+    function handleForgotPassword() {
+        let subject = encodeURIComponent("Invoice System - Password Recovery");
+        let body = encodeURIComponent("I need help recovering my invoice system password.");
+        window.location.href = `mailto:ashendulanja075@gmail.com?subject=${subject}&body=${body}`;
+        
+        let pin = prompt("Enter Recovery PIN:");
+        if(pin === "200411501558") {
+            showAlertModal("Recovery Notice", "Passwords are encrypted and hidden in Supabase for bank-level security.\n\nPlease reset your password directly from your Supabase Dashboard -> Authentication.");
+        } else if (pin !== null && pin !== "") {
+            showAlertModal("Error", "Incorrect PIN!");
+        }
     }
 
     // ==========================================
-    // SUPABASE WRAPPER & VARIABLES
+    // SUPABASE DB WRAPPER (Protected by RLS)
     // ==========================================
+    let dbListeners = {};
     let dbCache = {};
+
+    supabaseClient.channel('any_change')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'json_store' }, payload => {
+            let id = payload.new.id;
+            let data = payload.new.data;
+            dbCache[id] = data;
+            if(dbListeners[id]) dbListeners[id](data);
+        }).subscribe();
+
+    async function onDbChange(id, callback) {
+      dbListeners[id] = callback;
+      const { data, error } = await supabaseClient.from('json_store').select('data').eq('id', id).single();
+      if (error) {
+          callback(null); 
+      } else {
+          dbCache[id] = data ? data.data : null;
+          callback(dbCache[id]);
+      }
+    }
+
+    async function saveDb(id, data) {
+      dbCache[id] = data; 
+      let { error } = await supabaseClient.from('json_store').upsert({ id: id, data: data });
+      if(error) console.error("Secure Save Error: ", error.message);
+    }
+
+    // ==========================================
+    // 3. APP VARIABLES
+    // ==========================================
     let itemsList = [];
     let editingIndex = -1;
     let editingDbCustIndex = -1;
@@ -626,110 +738,26 @@
     let productsDB = [];
     let docHistory = [];
     let profileList = [];
+    let currentBizListenerRef = null;
     
-    let systemAuth = { user: "Ashen9666@", pass: "Ashen9666@" };
     const defaultProfileList = [{ id: "biz1", name: "🏢 Default Business" }];
-
-    // ==========================================
-    // AUTHENTICATION LOGIC & SHOW PASSWORD
-    // ==========================================
-    
-    function togglePassword(inputId) {
-        let input = document.getElementById(inputId);
-        if (input.type === "password") {
-            input.type = "text";
-        } else {
-            input.type = "password";
-        }
-    }
-
-    function setupAuthButtons() {
-        if (localStorage.getItem('invoice_logged_in') === 'true') {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
-            loadDataFromDB(); 
-        } else {
-            if(supabaseClient) {
-                supabaseClient.from('json_store').select('data').eq('id', 'admin/credentials').single()
-                .then((res) => {
-                    if(res.data && res.data.data) systemAuth = res.data.data;
-                });
-            }
-        }
-    }
-
-    function attemptLogin() {
-        let u = document.getElementById('loginUser').value.trim();
-        let p = document.getElementById('loginPass').value.trim();
-        let remember = document.getElementById('rememberMe').checked;
-
-        if (u === systemAuth.user && p === systemAuth.pass) {
-            if (remember) localStorage.setItem('invoice_logged_in', 'true');
-            
-            document.getElementById('loginUser').value = '';
-            document.getElementById('loginPass').value = '';
-            
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
-            
-            loadDataFromDB(); 
-        } else {
-            showAlertModal("Login Failed", "Incorrect Username or Password.");
-        }
-    }
-
-    function logout() {
-        localStorage.removeItem('invoice_logged_in');
-        document.getElementById('mainApp').style.display = 'none';
-        document.getElementById('loginScreen').style.display = 'flex';
-    }
-
-    function handleForgotPassword() {
-        let pin = prompt("Please enter recovery PIN to view credentials locally:");
-        if(pin === "200411501558") {
-            showAlertModal("Recovery", `Username: ${systemAuth.user}\nPassword: ${systemAuth.pass}`);
-        } else if (pin !== null && pin !== "") {
-            showAlertModal("Error", "Incorrect PIN!");
-        }
-    }
-
-    function updateCredentials() {
-        let oldP = document.getElementById('oldPassword').value.trim();
-        let u = document.getElementById('newUsername').value.trim();
-        let p = document.getElementById('newPassword').value.trim();
-        
-        if (oldP !== systemAuth.pass) {
-            return showAlertModal("Error", "Current password is incorrect! You cannot make changes.");
-        }
-        
-        if(!u || !p) return showAlertModal("Error", "Please fill both new username and password.");
-        
-        showConfirmModal("Confirm Change", "Are you sure you want to update the login details?", "Update", "modal-btn-confirm", function() {
-            systemAuth = { user: u, pass: p };
-            saveDb('admin/credentials', systemAuth).then(() => {
-                document.getElementById('oldPassword').value = '';
-                document.getElementById('newUsername').value = '';
-                document.getElementById('newPassword').value = '';
-                showAlertModal("Success", "Login credentials updated successfully.");
-            });
-        });
-    }
 
     // ==========================================
     // DATABASE FETCH & SYNC
     // ==========================================
-    function loadDataFromDB() {
-        if(!supabaseClient) {
-            alert("No internet or Database connection failed. Working in offline mode.");
-            profileList = defaultProfileList;
+    function showApp() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'flex';
+        
+        onDbChange('global/profileList', (data) => {
+            let currentSelection = document.getElementById('profileSelect').value;
+            profileList = data ? data : defaultProfileList;
             renderProfileDropdown();
-            return;
-        }
-
-        supabaseClient.from('json_store').select('data').eq('id', 'global/profileList').single()
-        .then((res) => {
-            profileList = (res.data && res.data.data) ? res.data.data : defaultProfileList;
-            renderProfileDropdown();
+            if(profileList.some(p => p.id === currentSelection)) {
+                document.getElementById('profileSelect').value = currentSelection;
+            } else if(profileList.length > 0) {
+                document.getElementById('profileSelect').value = profileList[0].id;
+            }
             loadActiveProfileData(); 
         });
 
@@ -742,12 +770,17 @@
         let activeBiz = document.getElementById('profileSelect').value;
         if (!activeBiz) return; 
 
+        if (currentBizListenerRef && currentBizListenerRef !== activeBiz) {
+            delete dbListeners['profiles/' + currentBizListenerRef];
+            delete dbListeners['customers/' + currentBizListenerRef];
+            delete dbListeners['products/' + currentBizListenerRef];
+            delete dbListeners['history/' + currentBizListenerRef];
+        }
+        currentBizListenerRef = activeBiz;
         originalDocNo = null; 
 
-        supabaseClient.from('json_store').select('data').eq('id', 'profiles/' + activeBiz).single()
-        .then((res) => {
-            let profile = (res.data && res.data.data) ? res.data.data : { compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic" };
-            
+        onDbChange('profiles/' + activeBiz, (snap) => {
+            let profile = snap || { compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic" };
             document.getElementById('compName').value = profile.compName || '';
             document.getElementById('compAddress').value = profile.compAddress || '';
             document.getElementById('primaryColor').value = profile.primaryColor || '#0f172a';
@@ -792,197 +825,14 @@
             updateTheme(); updateSignatureDisplay(); updateView();
         });
 
-        supabaseClient.from('json_store').select('data').eq('id', 'customers/' + activeBiz).single().then(res => { customersDB = (res.data && res.data.data) ? res.data.data : []; renderDBLists(); });
-        supabaseClient.from('json_store').select('data').eq('id', 'products/' + activeBiz).single().then(res => { productsDB = (res.data && res.data.data) ? res.data.data : []; renderDBLists(); });
-        supabaseClient.from('json_store').select('data').eq('id', 'history/' + activeBiz).single().then(res => { 
-            docHistory = (res.data && res.data.data) ? res.data.data : []; 
-            renderHistory();
-            if (!originalDocNo) handleDocTypeChange(); 
-        });
-    }
-
-    async function saveDb(id, data) {
-      if(supabaseClient) {
-          try {
-              let { error } = await supabaseClient.from('json_store').upsert({ id: id, data: data });
-              if(error) console.error("Error saving: ", error.message);
-          } catch(e) {
-              console.error("Save Error:", e);
-          }
-      }
+        onDbChange('customers/' + activeBiz, snap => { customersDB = snap || []; renderDBLists(); });
+        onDbChange('products/' + activeBiz, snap => { productsDB = snap || []; renderDBLists(); });
+        onDbChange('history/' + activeBiz, snap => { docHistory = snap || []; renderHistory(); if (!originalDocNo) handleDocTypeChange(); });
     }
 
     // ==========================================
-    // ALL OTHER FUNCTIONS (Save, Delete, Export, UI)
+    // CUSTOM DROPDOWN LOGIC
     // ==========================================
-
-    function saveProfile() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        let profileToSave = {
-            compName: document.getElementById('compName').value,
-            compAddress: document.getElementById('compAddress').value,
-            primaryColor: document.getElementById('primaryColor').value,
-            secondaryColor: document.getElementById('secondaryColor').value,
-            logoSize: document.getElementById('logoSize').value,
-            sigSize: document.getElementById('sigSize').value,
-            sigType: document.getElementById('sigType').value,
-            bankName: document.getElementById('bankName').value,
-            accName: document.getElementById('accName').value,
-            accNo: document.getElementById('accNo').value,
-            bankBranch: document.getElementById('bankBranch').value,
-            note1Heading: document.getElementById('note1Heading').value,
-            notes: document.getElementById('notes').value,
-            note2Heading: document.getElementById('note2Heading').value,
-            note2Text: document.getElementById('note2Text').value,
-            logoBase64: document.getElementById('logoPreview').style.display === 'block' ? document.getElementById('logoPreview').src : null,
-            bankLogoBase64: document.getElementById('bankLogoPreview').style.display === 'block' ? document.getElementById('bankLogoPreview').src : null,
-            sigBase64: document.getElementById('sigPreview').style.display === 'block' ? document.getElementById('sigPreview').src : null
-        };
-
-        saveDb('profiles/' + activeBiz, profileToSave).then(() => {
-            showAlertModal("Success", "Settings Saved Successfully across all devices!");
-        });
-    }
-
-    function addNewProfile() {
-        let name = prompt("Enter a name for the new profile:");
-        if (!name || name.trim() === "") return;
-        let newId = "biz_" + new Date().getTime();
-        profileList.push({ id: newId, name: name.trim() });
-        saveDb('global/profileList', profileList).then(() => {
-            document.getElementById('profileSelect').value = newId;
-            loadActiveProfileData();
-            showAlertModal("Success", `Profile '${name.trim()}' created!`);
-        });
-    }
-
-    function renameCurrentProfile() {
-        let activeId = document.getElementById('profileSelect').value;
-        let profile = profileList.find(p => p.id === activeId);
-        let newName = prompt("Enter new name for this profile:", profile.name);
-        if (!newName || newName.trim() === "") return;
-        profile.name = newName.trim();
-        saveDb('global/profileList', profileList).then(()=> renderProfileDropdown());
-    }
-
-    function deleteCurrentProfile() {
-        if (profileList.length <= 1) return showAlertModal("Denied", "You must have at least one active profile.");
-        let activeId = document.getElementById('profileSelect').value;
-        let profile = profileList.find(p => p.id === activeId);
-        showConfirmModal("Delete Profile", `Delete '${profile.name}' permanently from all devices?`, "Yes, Delete", "modal-btn-danger", function() {
-            profileList = profileList.filter(p => p.id !== activeId);
-            saveDb('global/profileList', profileList);
-            if(supabaseClient) {
-                supabaseClient.from('json_store').delete().in('id', [
-                    'profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId
-                ]).then(()=> { renderProfileDropdown(); loadActiveProfileData(); });
-            }
-        });
-    }
-
-    function saveCustomerDB() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        let name = document.getElementById('dbCustName').value.trim();
-        let address = document.getElementById('dbCustAddress').value.trim();
-        if(!name) return showAlertModal("Error", "Customer Name is required.");
-        if (editingDbCustIndex !== -1) {
-            customersDB[editingDbCustIndex] = {name, address};
-            editingDbCustIndex = -1;
-            let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); 
-            btn.innerHTML = "+ Save Customer"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
-        } else {
-            let existingIndex = customersDB.findIndex(c => c.name === name);
-            if(existingIndex !== -1) customersDB[existingIndex] = {name, address};
-            else customersDB.push({name, address});
-        }
-        saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists());
-        document.getElementById('dbCustName').value = '';
-        document.getElementById('dbCustAddress').value = '';
-    }
-
-    function deleteCustomerDB(index) {
-        let activeBiz = document.getElementById('profileSelect').value;
-        customersDB.splice(index, 1);
-        saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists());
-    }
-
-    function saveItemDB() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        let name = document.getElementById('dbItemName').value.trim();
-        let desc = document.getElementById('dbItemDesc').value.trim();
-        let price = parseFloat(document.getElementById('dbItemPrice').value) || 0;
-        if(!name) return showAlertModal("Error", "Item Name is required.");
-        if (editingDbItemIndex !== -1) {
-            productsDB[editingDbItemIndex] = {name, desc, price};
-            editingDbItemIndex = -1;
-            let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); 
-            btn.innerHTML = "+ Save Item"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
-        } else {
-            let existingIndex = productsDB.findIndex(p => p.name === name);
-            if(existingIndex !== -1) productsDB[existingIndex] = {name, desc, price};
-            else productsDB.push({name, desc, price});
-        }
-        saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists());
-        document.getElementById('dbItemName').value = '';
-        document.getElementById('dbItemDesc').value = '';
-        document.getElementById('dbItemPrice').value = '';
-    }
-
-    function deleteItemDB(index) {
-        let activeBiz = document.getElementById('profileSelect').value;
-        productsDB.splice(index, 1);
-        saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists());
-    }
-
-    function saveToHistory() {
-        let activeBiz = document.getElementById('profileSelect').value;
-        let docNo = document.getElementById('docNo').value;
-        let entry = {
-            docNo: docNo,
-            docType: document.getElementById('docType').value,
-            date: document.getElementById('docDate').value,
-            validDate: document.getElementById('validDate').value,
-            custName: document.getElementById('custName').value || 'Unknown Customer',
-            custAddress: document.getElementById('custAddress').value,
-            total: document.getElementById('grandTotal').innerText,
-            items: JSON.parse(JSON.stringify(itemsList)),
-            timestamp: new Date().getTime()
-        };
-
-        let existingIndex = docHistory.findIndex(h => h.docNo === docNo);
-        if (existingIndex >= 0) docHistory[existingIndex] = entry; 
-        else docHistory.push(entry); 
-
-        saveDb('history/' + activeBiz, docHistory).then(()=> renderHistory());
-    }
-
-    function deleteHistoryItem(event, docNoToDelete) {
-        event.stopPropagation(); 
-        showConfirmModal("Delete Document", `Permanently delete document ${docNoToDelete}?`, "Delete", "modal-btn-danger", function() {
-            let activeBiz = document.getElementById('profileSelect').value;
-            docHistory = docHistory.filter(h => h.docNo !== docNoToDelete);
-            saveDb('history/' + activeBiz, docHistory).then(()=> renderHistory());
-            
-            if (originalDocNo === docNoToDelete) {
-                originalDocNo = null; 
-                resetInvoiceForm();
-                handleDocTypeChange(); 
-            }
-        });
-    }
-
-    function renderProfileDropdown() {
-        let select = document.getElementById('profileSelect');
-        let currentVal = select.value;
-        select.innerHTML = '';
-        profileList.forEach(p => {
-            let opt = document.createElement('option');
-            opt.value = p.id;
-            opt.innerText = p.name;
-            select.appendChild(opt);
-        });
-    }
-
     function filterCustDropdown() {
         let term = document.getElementById('custName').value.toLowerCase();
         let drop = document.getElementById('custCustomDropdown');
@@ -996,8 +846,7 @@
                 div.onclick = function() {
                     document.getElementById('custName').value = c.name;
                     document.getElementById('custAddress').value = c.address;
-                    drop.style.display = 'none';
-                    updateView();
+                    drop.style.display = 'none'; updateView();
                 };
                 drop.appendChild(div);
             }
@@ -1032,6 +881,9 @@
         if (!e.target.closest('#itemName') && !e.target.closest('#itemCustomDropdown')) { document.getElementById('itemCustomDropdown').style.display = 'none'; }
     });
 
+    // ==========================================
+    // ALL OTHER FUNCTIONS
+    // ==========================================
     function exportToCSV() {
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "--- CUSTOMERS ---\nName,Address\n";
@@ -1059,6 +911,111 @@
             doc.autoTable({ startY: 25, head: [['Item Name', 'Description', 'Price (LKR)']], body: productsDB.map(p => [p.name, p.desc || '-', formatMoney(p.price)]) });
             doc.save("Items_Database.pdf");
         }
+    }
+
+    function saveProfile() {
+        let activeBiz = document.getElementById('profileSelect').value;
+        let profileToSave = {
+            compName: document.getElementById('compName').value, compAddress: document.getElementById('compAddress').value, primaryColor: document.getElementById('primaryColor').value, secondaryColor: document.getElementById('secondaryColor').value, logoSize: document.getElementById('logoSize').value, sigSize: document.getElementById('sigSize').value, sigType: document.getElementById('sigType').value, bankName: document.getElementById('bankName').value, accName: document.getElementById('accName').value, accNo: document.getElementById('accNo').value, bankBranch: document.getElementById('bankBranch').value, note1Heading: document.getElementById('note1Heading').value, notes: document.getElementById('notes').value, note2Heading: document.getElementById('note2Heading').value, note2Text: document.getElementById('note2Text').value,
+            logoBase64: document.getElementById('logoPreview').style.display === 'block' ? document.getElementById('logoPreview').src : null,
+            bankLogoBase64: document.getElementById('bankLogoPreview').style.display === 'block' ? document.getElementById('bankLogoPreview').src : null,
+            sigBase64: document.getElementById('sigPreview').style.display === 'block' ? document.getElementById('sigPreview').src : null
+        };
+        saveDb('profiles/' + activeBiz, profileToSave).then(() => { showAlertModal("Success", "Settings Saved Successfully across all devices!"); });
+    }
+
+    function addNewProfile() {
+        let name = prompt("Enter a name for the new profile:");
+        if (!name || name.trim() === "") return;
+        let newId = "biz_" + new Date().getTime();
+        profileList.push({ id: newId, name: name.trim() });
+        saveDb('global/profileList', profileList).then(() => {
+            document.getElementById('profileSelect').value = newId; loadActiveProfileData(); showAlertModal("Success", `Profile '${name.trim()}' created!`);
+        });
+    }
+
+    function renameCurrentProfile() {
+        let activeId = document.getElementById('profileSelect').value; let profile = profileList.find(p => p.id === activeId);
+        let newName = prompt("Enter new name for this profile:", profile.name);
+        if (!newName || newName.trim() === "") return;
+        profile.name = newName.trim(); saveDb('global/profileList', profileList).then(()=> renderProfileDropdown());
+    }
+
+    function deleteCurrentProfile() {
+        if (profileList.length <= 1) return showAlertModal("Denied", "You must have at least one active profile.");
+        let activeId = document.getElementById('profileSelect').value; let profile = profileList.find(p => p.id === activeId);
+        showConfirmModal("Delete Profile", `Delete '${profile.name}' permanently from all devices?`, "Yes, Delete", "modal-btn-danger", function() {
+            profileList = profileList.filter(p => p.id !== activeId);
+            saveDb('global/profileList', profileList);
+            supabaseClient.from('json_store').delete().in('id', ['profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId]).then(()=> { renderProfileDropdown(); loadActiveProfileData(); });
+        });
+    }
+
+    function saveCustomerDB() {
+        let activeBiz = document.getElementById('profileSelect').value;
+        let name = document.getElementById('dbCustName').value.trim(); let address = document.getElementById('dbCustAddress').value.trim();
+        if(!name) return showAlertModal("Error", "Customer Name is required.");
+        if (editingDbCustIndex !== -1) {
+            customersDB[editingDbCustIndex] = {name, address}; editingDbCustIndex = -1;
+            let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); btn.innerHTML = "+ Save Customer"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
+        } else {
+            let existingIndex = customersDB.findIndex(c => c.name === name);
+            if(existingIndex !== -1) customersDB[existingIndex] = {name, address}; else customersDB.push({name, address});
+        }
+        saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists());
+        document.getElementById('dbCustName').value = ''; document.getElementById('dbCustAddress').value = '';
+    }
+
+    function deleteCustomerDB(index) {
+        let activeBiz = document.getElementById('profileSelect').value;
+        customersDB.splice(index, 1);
+        saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists());
+    }
+
+    function saveItemDB() {
+        let activeBiz = document.getElementById('profileSelect').value;
+        let name = document.getElementById('dbItemName').value.trim(); let desc = document.getElementById('dbItemDesc').value.trim(); let price = parseFloat(document.getElementById('dbItemPrice').value) || 0;
+        if(!name) return showAlertModal("Error", "Item Name is required.");
+        if (editingDbItemIndex !== -1) {
+            productsDB[editingDbItemIndex] = {name, desc, price}; editingDbItemIndex = -1;
+            let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); btn.innerHTML = "+ Save Item"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
+        } else {
+            let existingIndex = productsDB.findIndex(p => p.name === name);
+            if(existingIndex !== -1) productsDB[existingIndex] = {name, desc, price}; else productsDB.push({name, desc, price});
+        }
+        saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists());
+        document.getElementById('dbItemName').value = ''; document.getElementById('dbItemDesc').value = ''; document.getElementById('dbItemPrice').value = '';
+    }
+
+    function deleteItemDB(index) {
+        let activeBiz = document.getElementById('profileSelect').value;
+        productsDB.splice(index, 1);
+        saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists());
+    }
+
+    function saveToHistory() {
+        let activeBiz = document.getElementById('profileSelect').value; let docNo = document.getElementById('docNo').value;
+        let entry = {
+            docNo: docNo, docType: document.getElementById('docType').value, date: document.getElementById('docDate').value, validDate: document.getElementById('validDate').value, custName: document.getElementById('custName').value || 'Unknown Customer', custAddress: document.getElementById('custAddress').value, total: document.getElementById('grandTotal').innerText, items: JSON.parse(JSON.stringify(itemsList)), timestamp: new Date().getTime()
+        };
+        let existingIndex = docHistory.findIndex(h => h.docNo === docNo);
+        if (existingIndex >= 0) docHistory[existingIndex] = entry; else docHistory.push(entry); 
+        saveDb('history/' + activeBiz, docHistory).then(()=> renderHistory());
+    }
+
+    function deleteHistoryItem(event, docNoToDelete) {
+        event.stopPropagation(); 
+        showConfirmModal("Delete Document", `Permanently delete document ${docNoToDelete}?`, "Delete", "modal-btn-danger", function() {
+            let activeBiz = document.getElementById('profileSelect').value;
+            docHistory = docHistory.filter(h => h.docNo !== docNoToDelete);
+            saveDb('history/' + activeBiz, docHistory).then(()=> renderHistory());
+            if (originalDocNo === docNoToDelete) { originalDocNo = null; resetInvoiceForm(); handleDocTypeChange(); }
+        });
+    }
+
+    function renderProfileDropdown() {
+        let select = document.getElementById('profileSelect'); let currentVal = select.value; select.innerHTML = '';
+        profileList.forEach(p => { let opt = document.createElement('option'); opt.value = p.id; opt.innerText = p.name; select.appendChild(opt); });
     }
 
     function handleDocDateChange() {
@@ -1103,10 +1060,8 @@
         let docNo = document.getElementById('docNo').value.trim();
         if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
         if(itemsList.length === 0) return showAlertModal("Error", "Please add at least one item to the document!");
-
         let exists = docHistory.some(h => h.docNo === docNo);
         if (exists && originalDocNo !== docNo) return showAlertModal("Duplicate Number Found", `Document Number ${docNo} already exists in the history!`);
-
         let title = exists ? "Update Document" : "Save Document"; let msg = exists ? "Update this document in the cloud history?" : "Save and print this new document?";
         
         showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
@@ -1123,12 +1078,10 @@
         let searchTerm = (document.getElementById('histSearch').value || '').toLowerCase();
         let fromDate = document.getElementById('histFrom').value; let toDate = document.getElementById('histTo').value;
         let sortedHistory = [...docHistory].sort((a, b) => b.timestamp - a.timestamp); let html = '';
-        
         sortedHistory.forEach((h, index) => {
             let matchSearch = h.custName.toLowerCase().includes(searchTerm) || h.docNo.toLowerCase().includes(searchTerm);
             let matchFrom = fromDate ? (new Date(h.date) >= new Date(fromDate)) : true;
             let matchTo = toDate ? (new Date(h.date) <= new Date(toDate)) : true;
-
             if (matchSearch && matchFrom && matchTo) {
                 let badgeClass = h.docType === 'QUOTATION' ? 'hist-badge quo' : 'hist-badge'; let originalIndex = docHistory.findIndex(orig => orig.docNo === h.docNo);
                 html += `<div class="hist-card" onclick="loadHistoryItem(${originalIndex})"><div class="hist-info"><h4>${h.custName}</h4><p>${h.docNo} • ${formatDate(h.date)}</p></div><div class="hist-meta"><span class="hist-total">${h.total}</span><div style="margin-top: 5px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;"><span class="${badgeClass}">${h.docType}</span><button class="del-btn" style="opacity:1; padding: 0;" onclick="deleteHistoryItem(event, '${h.docNo}')" title="Delete">🗑️</button></div></div></div>`;
@@ -1267,15 +1220,10 @@
     // ==========================================
     document.addEventListener('contextmenu', event => event.preventDefault());
     document.onkeydown = function(e) {
-        // Prevent F12
         if(e.keyCode == 123) { return false; }
-        // Prevent Ctrl+Shift+I (Inspector)
         if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; }
-        // Prevent Ctrl+Shift+J (Console)
         if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; }
-        // Prevent Ctrl+U (View Source)
         if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; }
-        // Prevent Ctrl+Shift+C (Element Inspector)
         if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; }
     };
 
