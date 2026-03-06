@@ -581,76 +581,19 @@
     const supabaseUrl = 'https://gseawgjmvcpaxgnqsxry.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZWF3Z2ptdmNwYXhnbnFzeHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MjM5NzEsImV4cCI6MjA4NzM5OTk3MX0.u2nbmLNBxvwfbOhb7JtXpTo0Ax6pW0OjjWhQe1VJBNM';
     
-    // වෙනස් කල කොටස: supabaseClient කියන නම පාවිච්චි කලා හැප්පෙන්නේ නැති වෙන්න.
     let supabaseClient = null;
     try {
         if(window.supabase) {
             supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-        } else {
-            console.warn("Supabase SDK is not loaded.");
         }
     } catch(e) {
-        console.error("Supabase Error: ", e);
+        console.error("Supabase initialization error");
     }
 
     // ==========================================
-    // SUPABASE "NoSQL-LIKE" WRAPPER 
+    // SUPABASE WRAPPER & VARIABLES
     // ==========================================
-    let dbListeners = {};
     let dbCache = {};
-
-    if(supabaseClient) {
-        try {
-            supabaseClient.channel('any_change')
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'json_store' }, payload => {
-                  let id = payload.new.id;
-                  let data = payload.new.data;
-                  dbCache[id] = data;
-                  if(dbListeners[id]) dbListeners[id](data);
-              })
-              .subscribe();
-        } catch(e) {
-            console.warn("Realtime sync issue: ", e);
-        }
-    }
-
-    function onDbChange(id, callback) {
-      dbListeners[id] = callback;
-      if(supabaseClient) {
-          supabaseClient.from('json_store').select('data').eq('id', id).single()
-          .then((res) => {
-              if (res.error) {
-                  console.warn("DB Warning: Please make sure you disabled RLS in Supabase.");
-                  callback(null); 
-              } else {
-                  dbCache[id] = res.data ? res.data.data : null;
-                  callback(dbCache[id]);
-              }
-          })
-          .catch(err => {
-              console.error("Network Error: ", err);
-              callback(null);
-          });
-      } else {
-          callback(null); 
-      }
-    }
-
-    async function saveDb(id, data) {
-      dbCache[id] = data; 
-      if(supabaseClient) {
-          try {
-              let { error } = await supabaseClient.from('json_store').upsert({ id: id, data: data });
-              if(error) console.error("Error saving to Supabase: ", error.message);
-          } catch(e) {
-              console.error("Save Error:", e);
-          }
-      }
-    }
-
-    // ==========================================
-    // 2. APP VARIABLES
-    // ==========================================
     let itemsList = [];
     let editingIndex = -1;
     let editingDbCustIndex = -1;
@@ -661,48 +604,51 @@
     let productsDB = [];
     let docHistory = [];
     let profileList = [];
-    let currentBizListenerRef = null;
     
-    // Auth Variables
+    // Default Auth
     let systemAuth = { user: "Ashen9666@", pass: "Ashen9666@" };
-
-    const defaultProfileList = [
-        { id: "biz1", name: "🏢 Default Business" }
-    ];
+    const defaultProfileList = [{ id: "biz1", name: "🏢 Default Business" }];
 
     // ==========================================
-    // 3. AUTHENTICATION LOGIC
+    // SEPARATED AUTHENTICATION LOGIC
     // ==========================================
-    function initAuth() {
-        onDbChange('admin/credentials', val => {
-            if(val) {
-                systemAuth = val;
-            } else {
-                saveDb('admin/credentials', systemAuth); 
-            }
-        });
-
+    
+    // This runs immediately when page loads to setup buttons
+    function setupAuthButtons() {
+        // First check if they clicked "Remember Me" previously
         if (localStorage.getItem('invoice_logged_in') === 'true') {
-            showApp();
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
+            loadDataFromDB(); // Fetch real data from Supabase
+        } else {
+            // Not remembered, so fetch real credentials in background just in case they changed it
+            if(supabaseClient) {
+                supabaseClient.from('json_store').select('data').eq('id', 'admin/credentials').single()
+                .then((res) => {
+                    if(res.data && res.data.data) systemAuth = res.data.data;
+                });
+            }
         }
     }
 
+    // This runs ONLY when user clicks Login button
     function attemptLogin() {
-        try {
-            let u = document.getElementById('loginUser').value.trim();
-            let p = document.getElementById('loginPass').value.trim();
-            let remember = document.getElementById('rememberMe').checked;
+        let u = document.getElementById('loginUser').value.trim();
+        let p = document.getElementById('loginPass').value.trim();
+        let remember = document.getElementById('rememberMe').checked;
 
-            if (u === systemAuth.user && p === systemAuth.pass) {
-                if (remember) localStorage.setItem('invoice_logged_in', 'true');
-                document.getElementById('loginUser').value = '';
-                document.getElementById('loginPass').value = '';
-                showApp();
-            } else {
-                showAlertModal("Login Failed", "Incorrect Username or Password.");
-            }
-        } catch(e) {
-            alert("Error running login script. Please refresh the page.");
+        if (u === systemAuth.user && p === systemAuth.pass) {
+            if (remember) localStorage.setItem('invoice_logged_in', 'true');
+            
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
+            
+            loadDataFromDB(); // Now fetch actual data
+        } else {
+            showAlertModal("Login Failed", "Incorrect Username or Password.");
         }
     }
 
@@ -712,17 +658,7 @@
         document.getElementById('loginScreen').style.display = 'flex';
     }
 
-    function showApp() {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'flex';
-        initApp(); 
-    }
-
     function handleForgotPassword() {
-        let subject = encodeURIComponent("Invoice System - Password Recovery Request");
-        let body = encodeURIComponent("Please provide my login details. My system has locked me out.");
-        window.location.href = `mailto:ashendulanja075@gmail.com?subject=${subject}&body=${body}`;
-        
         let pin = prompt("Please enter recovery PIN to view credentials locally:");
         if(pin === "200411501558") {
             showAlertModal("Recovery", `Username: ${systemAuth.user}\nPassword: ${systemAuth.pass}`);
@@ -731,151 +667,23 @@
         }
     }
 
-    function updateCredentials() {
-        let u = document.getElementById('newUsername').value.trim();
-        let p = document.getElementById('newPassword').value.trim();
-        if(!u || !p) return showAlertModal("Error", "Please fill both new username and password.");
-        
-        showConfirmModal("Confirm Change", "Are you sure you want to update the login details?", "Update", "modal-btn-confirm", function() {
-            systemAuth = { user: u, pass: p };
-            saveDb('admin/credentials', systemAuth).then(() => {
-                document.getElementById('newUsername').value = '';
-                document.getElementById('newPassword').value = '';
-                showAlertModal("Success", "Login credentials updated successfully.");
-            });
-        });
-    }
-
     // ==========================================
-    // CUSTOM DROPDOWN LOGIC
+    // DATABASE FETCH & SYNC
     // ==========================================
-    function filterCustDropdown() {
-        let term = document.getElementById('custName').value.toLowerCase();
-        let drop = document.getElementById('custCustomDropdown');
-        drop.innerHTML = '';
-        let hasItems = false;
-
-        customersDB.forEach(c => {
-            if (c.name.toLowerCase().includes(term) || c.address.toLowerCase().includes(term)) {
-                hasItems = true;
-                let div = document.createElement('div');
-                div.innerHTML = `<strong>${c.name}</strong><span>${c.address || ''}</span>`;
-                div.onclick = function() {
-                    document.getElementById('custName').value = c.name;
-                    document.getElementById('custAddress').value = c.address;
-                    drop.style.display = 'none';
-                    updateView();
-                };
-                drop.appendChild(div);
-            }
-        });
-        drop.style.display = hasItems ? 'block' : 'none';
-    }
-
-    function filterItemDropdown() {
-        let term = document.getElementById('itemName').value.toLowerCase();
-        let drop = document.getElementById('itemCustomDropdown');
-        drop.innerHTML = '';
-        let hasItems = false;
-
-        productsDB.forEach(p => {
-            if (p.name.toLowerCase().includes(term) || (p.desc && p.desc.toLowerCase().includes(term))) {
-                hasItems = true;
-                let div = document.createElement('div');
-                div.innerHTML = `<strong>${p.name}</strong><span>LKR ${formatMoney(p.price)}</span>`;
-                div.onclick = function() {
-                    document.getElementById('itemName').value = p.name;
-                    document.getElementById('itemPrice').value = p.price;
-                    if(p.desc) document.getElementById('itemDesc').value = p.desc;
-                    drop.style.display = 'none';
-                };
-                drop.appendChild(div);
-            }
-        });
-        drop.style.display = hasItems ? 'block' : 'none';
-    }
-
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('#custName') && !e.target.closest('#custCustomDropdown')) {
-            document.getElementById('custCustomDropdown').style.display = 'none';
-        }
-        if (!e.target.closest('#itemName') && !e.target.closest('#itemCustomDropdown')) {
-            document.getElementById('itemCustomDropdown').style.display = 'none';
-        }
-    });
-
-    // ==========================================
-    // DATABASE EXPORT LOGIC
-    // ==========================================
-    function exportToCSV() {
-        let csvContent = "data:text/csv;charset=utf-8,";
-        
-        csvContent += "--- CUSTOMERS ---\nName,Address\n";
-        customersDB.forEach(c => {
-            let row = `"${c.name}","${c.address.replace(/\n/g, ' ')}"`;
-            csvContent += row + "\n";
-        });
-
-        csvContent += "\n--- ITEMS ---\nItem Name,Description,Price\n";
-        productsDB.forEach(p => {
-            let desc = p.desc ? p.desc.replace(/\n/g, ' ') : '';
-            let row = `"${p.name}","${desc}",${p.price}`;
-            csvContent += row + "\n";
-        });
-
-        let encodedUri = encodeURI(csvContent);
-        let link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "System_Database_Export.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    function exportToJSON() {
-        let exportData = { customers: customersDB, items: productsDB };
-        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-        let link = document.createElement("a");
-        link.setAttribute("href", dataStr);
-        link.setAttribute("download", "System_Backup.json");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    function exportToPDF(type) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(18);
-        
-        if(type === 'customers') {
-            doc.text("Customer Database", 14, 20);
-            let bodyData = customersDB.map(c => [c.name, c.address]);
-            doc.autoTable({ startY: 25, head: [['Customer Name', 'Address/Contact']], body: bodyData });
-            doc.save("Customers_Database.pdf");
-        } else {
-            doc.text("Item/Product Database", 14, 20);
-            let bodyData = productsDB.map(p => [p.name, p.desc || '-', formatMoney(p.price)]);
-            doc.autoTable({ startY: 25, head: [['Item Name', 'Description', 'Price (LKR)']], body: bodyData });
-            doc.save("Items_Database.pdf");
-        }
-    }
-
-    // ==========================================
-    // 3. INIT APP & LISTENERS (Supabase Sync)
-    // ==========================================
-    function initApp() {
-        onDbChange('global/profileList', (data) => {
-            let currentSelection = document.getElementById('profileSelect').value;
-            profileList = data ? data : defaultProfileList;
+    function loadDataFromDB() {
+        if(!supabaseClient) {
+            alert("No internet or Database connection failed. Working in offline mode.");
+            profileList = defaultProfileList;
             renderProfileDropdown();
-            
-            if(profileList.some(p => p.id === currentSelection)) {
-                document.getElementById('profileSelect').value = currentSelection;
-            } else if(profileList.length > 0) {
-                document.getElementById('profileSelect').value = profileList[0].id;
-            }
-            loadProfile(); 
+            return;
+        }
+
+        // Fetch Profiles
+        supabaseClient.from('json_store').select('data').eq('id', 'global/profileList').single()
+        .then((res) => {
+            profileList = (res.data && res.data.data) ? res.data.data : defaultProfileList;
+            renderProfileDropdown();
+            loadActiveProfileData(); 
         });
 
         document.getElementById('docDate').valueAsDate = new Date();
@@ -883,21 +691,16 @@
         document.getElementById('validDate').valueAsDate = nextWeek;
     }
 
-    function loadProfile() {
+    function loadActiveProfileData() {
         let activeBiz = document.getElementById('profileSelect').value;
         if (!activeBiz) return; 
 
-        if (currentBizListenerRef && currentBizListenerRef !== activeBiz) {
-            delete dbListeners['profiles/' + currentBizListenerRef];
-            delete dbListeners['customers/' + currentBizListenerRef];
-            delete dbListeners['products/' + currentBizListenerRef];
-            delete dbListeners['history/' + currentBizListenerRef];
-        }
-        currentBizListenerRef = activeBiz;
         originalDocNo = null; 
 
-        onDbChange('profiles/' + activeBiz, (snap) => {
-            let profile = snap || { compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic" };
+        // Fetch Settings
+        supabaseClient.from('json_store').select('data').eq('id', 'profiles/' + activeBiz).single()
+        .then((res) => {
+            let profile = (res.data && res.data.data) ? res.data.data : { compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic" };
             
             document.getElementById('compName').value = profile.compName || '';
             document.getElementById('compAddress').value = profile.compAddress || '';
@@ -906,12 +709,10 @@
             document.getElementById('logoSize').value = profile.logoSize || 140;
             document.getElementById('sigSize').value = profile.sigSize || 120;
             document.getElementById('sigType').value = profile.sigType || 'upload';
-            
             document.getElementById('bankName').value = profile.bankName || '';
             document.getElementById('accName').value = profile.accName || '';
             document.getElementById('accNo').value = profile.accNo || '';
             document.getElementById('bankBranch').value = profile.bankBranch || '';
-            
             document.getElementById('note1Heading').value = profile.note1Heading !== undefined ? profile.note1Heading : 'Notes';
             document.getElementById('notes').value = profile.notes || '';
             document.getElementById('note2Heading').value = profile.note2Heading !== undefined ? profile.note2Heading : 'Terms & Conditions';
@@ -947,18 +748,46 @@
             updateView();
         });
 
-        onDbChange('customers/' + activeBiz, snap => { customersDB = snap || []; renderDBLists(); });
-        onDbChange('products/' + activeBiz, snap => { productsDB = snap || []; renderDBLists(); });
-        onDbChange('history/' + activeBiz, snap => { 
-            docHistory = snap || []; 
+        // Fetch DB & History
+        supabaseClient.from('json_store').select('data').eq('id', 'customers/' + activeBiz).single().then(res => { customersDB = (res.data && res.data.data) ? res.data.data : []; renderDBLists(); });
+        supabaseClient.from('json_store').select('data').eq('id', 'products/' + activeBiz).single().then(res => { productsDB = (res.data && res.data.data) ? res.data.data : []; renderDBLists(); });
+        supabaseClient.from('json_store').select('data').eq('id', 'history/' + activeBiz).single().then(res => { 
+            docHistory = (res.data && res.data.data) ? res.data.data : []; 
             renderHistory();
             if (!originalDocNo) handleDocTypeChange(); 
         });
     }
 
+    async function saveDb(id, data) {
+      if(supabaseClient) {
+          try {
+              let { error } = await supabaseClient.from('json_store').upsert({ id: id, data: data });
+              if(error) console.error("Error saving: ", error.message);
+          } catch(e) {
+              console.error("Save Error:", e);
+          }
+      }
+    }
+
     // ==========================================
-    // 4. SUPABASE SAVE FUNCTIONS
+    // ALL OTHER FUNCTIONS (Save, Delete, Export, UI)
     // ==========================================
+
+    function updateCredentials() {
+        let u = document.getElementById('newUsername').value.trim();
+        let p = document.getElementById('newPassword').value.trim();
+        if(!u || !p) return showAlertModal("Error", "Please fill both new username and password.");
+        
+        showConfirmModal("Confirm Change", "Are you sure you want to update the login details?", "Update", "modal-btn-confirm", function() {
+            systemAuth = { user: u, pass: p };
+            saveDb('admin/credentials', systemAuth).then(() => {
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newPassword').value = '';
+                showAlertModal("Success", "Login credentials updated successfully.");
+            });
+        });
+    }
+
     function saveProfile() {
         let activeBiz = document.getElementById('profileSelect').value;
         let profileToSave = {
@@ -994,7 +823,7 @@
         profileList.push({ id: newId, name: name.trim() });
         saveDb('global/profileList', profileList).then(() => {
             document.getElementById('profileSelect').value = newId;
-            loadProfile();
+            loadActiveProfileData();
             showAlertModal("Success", `Profile '${name.trim()}' created!`);
         });
     }
@@ -1005,7 +834,7 @@
         let newName = prompt("Enter new name for this profile:", profile.name);
         if (!newName || newName.trim() === "") return;
         profile.name = newName.trim();
-        saveDb('global/profileList', profileList);
+        saveDb('global/profileList', profileList).then(()=> renderProfileDropdown());
     }
 
     function deleteCurrentProfile() {
@@ -1018,7 +847,7 @@
             if(supabaseClient) {
                 supabaseClient.from('json_store').delete().in('id', [
                     'profiles/' + activeId, 'customers/' + activeId, 'products/' + activeId, 'history/' + activeId
-                ]).then();
+                ]).then(()=> { renderProfileDropdown(); loadActiveProfileData(); });
             }
         });
     }
@@ -1038,7 +867,7 @@
             if(existingIndex !== -1) customersDB[existingIndex] = {name, address};
             else customersDB.push({name, address});
         }
-        saveDb('customers/' + activeBiz, customersDB);
+        saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists());
         document.getElementById('dbCustName').value = '';
         document.getElementById('dbCustAddress').value = '';
     }
@@ -1046,7 +875,7 @@
     function deleteCustomerDB(index) {
         let activeBiz = document.getElementById('profileSelect').value;
         customersDB.splice(index, 1);
-        saveDb('customers/' + activeBiz, customersDB);
+        saveDb('customers/' + activeBiz, customersDB).then(()=> renderDBLists());
     }
 
     function saveItemDB() {
@@ -1065,7 +894,7 @@
             if(existingIndex !== -1) productsDB[existingIndex] = {name, desc, price};
             else productsDB.push({name, desc, price});
         }
-        saveDb('products/' + activeBiz, productsDB);
+        saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists());
         document.getElementById('dbItemName').value = '';
         document.getElementById('dbItemDesc').value = '';
         document.getElementById('dbItemPrice').value = '';
@@ -1074,7 +903,7 @@
     function deleteItemDB(index) {
         let activeBiz = document.getElementById('profileSelect').value;
         productsDB.splice(index, 1);
-        saveDb('products/' + activeBiz, productsDB);
+        saveDb('products/' + activeBiz, productsDB).then(()=> renderDBLists());
     }
 
     function saveToHistory() {
@@ -1096,7 +925,7 @@
         if (existingIndex >= 0) docHistory[existingIndex] = entry; 
         else docHistory.push(entry); 
 
-        saveDb('history/' + activeBiz, docHistory);
+        saveDb('history/' + activeBiz, docHistory).then(()=> renderHistory());
     }
 
     function deleteHistoryItem(event, docNoToDelete) {
@@ -1104,7 +933,7 @@
         showConfirmModal("Delete Document", `Permanently delete document ${docNoToDelete}?`, "Delete", "modal-btn-danger", function() {
             let activeBiz = document.getElementById('profileSelect').value;
             docHistory = docHistory.filter(h => h.docNo !== docNoToDelete);
-            saveDb('history/' + activeBiz, docHistory);
+            saveDb('history/' + activeBiz, docHistory).then(()=> renderHistory());
             
             if (originalDocNo === docNoToDelete) {
                 originalDocNo = null; 
@@ -1115,7 +944,7 @@
     }
 
     // ==========================================
-    // 5. REMAINING UI FUNCTIONS
+    // UI FUNCTIONS
     // ==========================================
     function renderProfileDropdown() {
         let select = document.getElementById('profileSelect');
@@ -1129,68 +958,128 @@
         });
     }
 
+    function filterCustDropdown() {
+        let term = document.getElementById('custName').value.toLowerCase();
+        let drop = document.getElementById('custCustomDropdown');
+        drop.innerHTML = '';
+        let hasItems = false;
+        customersDB.forEach(c => {
+            if (c.name.toLowerCase().includes(term) || c.address.toLowerCase().includes(term)) {
+                hasItems = true;
+                let div = document.createElement('div');
+                div.innerHTML = `<strong>${c.name}</strong><span>${c.address || ''}</span>`;
+                div.onclick = function() {
+                    document.getElementById('custName').value = c.name;
+                    document.getElementById('custAddress').value = c.address;
+                    drop.style.display = 'none';
+                    updateView();
+                };
+                drop.appendChild(div);
+            }
+        });
+        drop.style.display = hasItems ? 'block' : 'none';
+    }
+
+    function filterItemDropdown() {
+        let term = document.getElementById('itemName').value.toLowerCase();
+        let drop = document.getElementById('itemCustomDropdown');
+        drop.innerHTML = '';
+        let hasItems = false;
+        productsDB.forEach(p => {
+            if (p.name.toLowerCase().includes(term) || (p.desc && p.desc.toLowerCase().includes(term))) {
+                hasItems = true;
+                let div = document.createElement('div');
+                div.innerHTML = `<strong>${p.name}</strong><span>LKR ${formatMoney(p.price)}</span>`;
+                div.onclick = function() {
+                    document.getElementById('itemName').value = p.name;
+                    document.getElementById('itemPrice').value = p.price;
+                    if(p.desc) document.getElementById('itemDesc').value = p.desc;
+                    drop.style.display = 'none';
+                };
+                drop.appendChild(div);
+            }
+        });
+        drop.style.display = hasItems ? 'block' : 'none';
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#custName') && !e.target.closest('#custCustomDropdown')) {
+            document.getElementById('custCustomDropdown').style.display = 'none';
+        }
+        if (!e.target.closest('#itemName') && !e.target.closest('#itemCustomDropdown')) {
+            document.getElementById('itemCustomDropdown').style.display = 'none';
+        }
+    });
+
+    function exportToCSV() {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "--- CUSTOMERS ---\nName,Address\n";
+        customersDB.forEach(c => { csvContent += `"${c.name}","${c.address.replace(/\n/g, ' ')}"\n`; });
+        csvContent += "\n--- ITEMS ---\nItem Name,Description,Price\n";
+        productsDB.forEach(p => { let desc = p.desc ? p.desc.replace(/\n/g, ' ') : ''; csvContent += `"${p.name}","${desc}",${p.price}\n`; });
+        let link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "System_Database_Export.csv");
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    function exportToJSON() {
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ customers: customersDB, items: productsDB }, null, 2));
+        let link = document.createElement("a"); link.setAttribute("href", dataStr); link.setAttribute("download", "System_Backup.json");
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    function exportToPDF(type) {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFontSize(18);
+        if(type === 'customers') {
+            doc.text("Customer Database", 14, 20);
+            doc.autoTable({ startY: 25, head: [['Customer Name', 'Address/Contact']], body: customersDB.map(c => [c.name, c.address]) });
+            doc.save("Customers_Database.pdf");
+        } else {
+            doc.text("Item/Product Database", 14, 20);
+            doc.autoTable({ startY: 25, head: [['Item Name', 'Description', 'Price (LKR)']], body: productsDB.map(p => [p.name, p.desc || '-', formatMoney(p.price)]) });
+            doc.save("Items_Database.pdf");
+        }
+    }
+
     function handleDocDateChange() {
         let docType = document.getElementById('docType').value;
         let dateVal = document.getElementById('docDate').value;
         if (docType === 'QUOTATION' && dateVal) {
-            let d = new Date(dateVal);
-            d.setDate(d.getDate() + 14); 
-            document.getElementById('validDate').valueAsDate = d;
+            let d = new Date(dateVal); d.setDate(d.getDate() + 14); document.getElementById('validDate').valueAsDate = d;
         }
         updateView();
     }
 
     function getNextDocNo(type) {
-        let maxNumber = 0;
-        let bestPrefix = type === 'QUOTATION' ? 'QUO-' : 'INV-';
-        let numberLength = 4;
-        let found = false;
+        let maxNumber = 0; let bestPrefix = type === 'QUOTATION' ? 'QUO-' : 'INV-'; let numberLength = 4; let found = false;
         for (let i = 0; i < docHistory.length; i++) {
             if (docHistory[i].docType === type) {
                 let match = docHistory[i].docNo.match(/^(.*?)(\d+)$/);
-                if (match) {
-                    let num = parseInt(match[2], 10);
-                    if (num > maxNumber) { maxNumber = num; bestPrefix = match[1]; numberLength = match[2].length; found = true; }
-                }
+                if (match) { let num = parseInt(match[2], 10); if (num > maxNumber) { maxNumber = num; bestPrefix = match[1]; numberLength = match[2].length; found = true; } }
             }
         }
-        if (found) {
-            let nextNumber = maxNumber + 1;
-            return bestPrefix + String(nextNumber).padStart(numberLength, '0');
-        }
+        if (found) return bestPrefix + String(maxNumber + 1).padStart(numberLength, '0');
         return type === 'QUOTATION' ? 'QUO-1001' : 'INV-1001';
     }
 
     let modalCallback = null;
     function closeCustomModal() { document.getElementById('customModal').classList.remove('show'); }
     function showAlertModal(title, msg) {
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalMessage').innerText = msg;
+        document.getElementById('modalTitle').innerText = title; document.getElementById('modalMessage').innerText = msg;
         document.getElementById('modalActions').innerHTML = `<button class="modal-btn modal-btn-confirm" onclick="closeCustomModal()">OK</button>`;
         document.getElementById('customModal').classList.add('show');
     }
     function showConfirmModal(title, msg, confirmText, btnClass, callback) {
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalMessage').innerText = msg;
-        modalCallback = callback;
-        document.getElementById('modalActions').innerHTML = `
-            <button class="modal-btn modal-btn-cancel" onclick="closeCustomModal()">Cancel</button>
-            <button class="modal-btn ${btnClass}" onclick="executeModalCallback()">${confirmText}</button>
-        `;
+        document.getElementById('modalTitle').innerText = title; document.getElementById('modalMessage').innerText = msg; modalCallback = callback;
+        document.getElementById('modalActions').innerHTML = `<button class="modal-btn modal-btn-cancel" onclick="closeCustomModal()">Cancel</button><button class="modal-btn ${btnClass}" onclick="executeModalCallback()">${confirmText}</button>`;
         document.getElementById('customModal').classList.add('show');
     }
     function executeModalCallback() { closeCustomModal(); if(modalCallback) modalCallback(); }
 
     function resetInvoiceForm() {
-        document.getElementById('custName').value = '';
-        document.getElementById('custAddress').value = '';
+        document.getElementById('custName').value = ''; document.getElementById('custAddress').value = '';
         document.getElementById('docDate').valueAsDate = new Date();
-        let nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 14);
-        document.getElementById('validDate').valueAsDate = nextWeek;
-        itemsList = [];
-        editingIndex = -1;
-        resetItemForm(); 
-        renderTable();
+        let nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 14); document.getElementById('validDate').valueAsDate = nextWeek;
+        itemsList = []; editingIndex = -1; resetItemForm(); renderTable();
     }
 
     function initiatePrintAndSave() {
@@ -1199,44 +1088,29 @@
         if(itemsList.length === 0) return showAlertModal("Error", "Please add at least one item to the document!");
 
         let exists = docHistory.some(h => h.docNo === docNo);
-        if (exists && originalDocNo !== docNo) {
-            return showAlertModal("Duplicate Number Found", `Document Number ${docNo} already exists in the history!`);
-        }
+        if (exists && originalDocNo !== docNo) return showAlertModal("Duplicate Number Found", `Document Number ${docNo} already exists in the history!`);
 
         let title = exists ? "Update Document" : "Save Document";
         let msg = exists ? "Update this document in the cloud history?" : "Save and print this new document?";
         
         showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
             saveToHistory();
-            
             let afterPrint = function() {
                 window.removeEventListener('afterprint', afterPrint);
                 setTimeout(function() {
-                    showConfirmModal(
-                        "Action Completed", 
-                        "Document has been saved and printed. Do you want to clear the form and start a NEW document?", 
-                        "Yes, Start New", 
-                        "modal-btn-confirm", 
-                        function() {
-                            originalDocNo = null; 
-                            resetInvoiceForm();
-                            handleDocTypeChange(); 
-                            updateView();
-                        }
-                    );
+                    showConfirmModal("Action Completed", "Document has been saved and printed. Do you want to clear the form and start a NEW document?", "Yes, Start New", "modal-btn-confirm", function() {
+                            originalDocNo = null; resetInvoiceForm(); handleDocTypeChange(); updateView();
+                    });
                 }, 800);
             };
             window.addEventListener('afterprint', afterPrint);
-            
             window.print();
         });
     }
 
     function renderHistory() {
         let searchTerm = (document.getElementById('histSearch').value || '').toLowerCase();
-        let fromDate = document.getElementById('histFrom').value;
-        let toDate = document.getElementById('histTo').value;
-
+        let fromDate = document.getElementById('histFrom').value; let toDate = document.getElementById('histTo').value;
         let sortedHistory = [...docHistory].sort((a, b) => b.timestamp - a.timestamp);
         let html = '';
         
@@ -1248,14 +1122,9 @@
             if (matchSearch && matchFrom && matchTo) {
                 let badgeClass = h.docType === 'QUOTATION' ? 'hist-badge quo' : 'hist-badge';
                 let originalIndex = docHistory.findIndex(orig => orig.docNo === h.docNo);
-                html += `
-                <div class="hist-card" onclick="loadHistoryItem(${originalIndex})">
-                    <div class="hist-info">
-                        <h4>${h.custName}</h4>
-                        <p>${h.docNo} • ${formatDate(h.date)}</p>
-                    </div>
-                    <div class="hist-meta">
-                        <span class="hist-total">${h.total}</span>
+                html += `<div class="hist-card" onclick="loadHistoryItem(${originalIndex})">
+                    <div class="hist-info"><h4>${h.custName}</h4><p>${h.docNo} • ${formatDate(h.date)}</p></div>
+                    <div class="hist-meta"><span class="hist-total">${h.total}</span>
                         <div style="margin-top: 5px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
                             <span class="${badgeClass}">${h.docType}</span>
                             <button class="del-btn" style="opacity:1; padding: 0;" onclick="deleteHistoryItem(event, '${h.docNo}')" title="Delete">🗑️</button>
@@ -1264,31 +1133,20 @@
                 </div>`;
             }
         });
-
         if(html === '') html = '<p style="text-align:center; color:var(--text-muted); font-size:13px; margin-top:20px;">No documents found.</p>';
         document.getElementById('historyListContainer').innerHTML = html;
     }
 
     function loadHistoryItem(index) {
-        let h = docHistory[index];
-        if(!h) return;
-        document.getElementById('docType').value = h.docType;
-        document.getElementById('docNo').value = h.docNo;
-        document.getElementById('docDate').value = h.date;
-        document.getElementById('validDate').value = h.validDate || '';
-        document.getElementById('custName').value = h.custName !== 'Unknown Customer' ? h.custName : '';
-        document.getElementById('custAddress').value = h.custAddress || '';
-        itemsList = JSON.parse(JSON.stringify(h.items));
-        originalDocNo = h.docNo;
-        
+        let h = docHistory[index]; if(!h) return;
+        document.getElementById('docType').value = h.docType; document.getElementById('docNo').value = h.docNo;
+        document.getElementById('docDate').value = h.date; document.getElementById('validDate').value = h.validDate || '';
+        document.getElementById('custName').value = h.custName !== 'Unknown Customer' ? h.custName : ''; document.getElementById('custAddress').value = h.custAddress || '';
+        itemsList = JSON.parse(JSON.stringify(h.items)); originalDocNo = h.docNo;
         document.getElementById('displayDocType').innerText = h.docType;
-        if(h.docType === 'QUOTATION') {
-            document.getElementById('validDateControl').style.display = 'block'; document.getElementById('displayValidDateArea').style.display = 'block'; 
-        } else {
-            document.getElementById('validDateControl').style.display = 'none'; document.getElementById('displayValidDateArea').style.display = 'none'; 
-        }
-        renderTable(); updateView();
-        switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
+        if(h.docType === 'QUOTATION') { document.getElementById('validDateControl').style.display = 'block'; document.getElementById('displayValidDateArea').style.display = 'block'; } 
+        else { document.getElementById('validDateControl').style.display = 'none'; document.getElementById('displayValidDateArea').style.display = 'none'; }
+        renderTable(); updateView(); switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
     }
 
     function clearHistFilters() {
@@ -1298,14 +1156,11 @@
     function renderDBLists() {
         let custSearchTerm = (document.getElementById('searchCustDB')?.value || '').toLowerCase();
         let itemSearchTerm = (document.getElementById('searchItemDB')?.value || '').toLowerCase();
-
         let custUIHTML = '';
         customersDB.forEach((c, index) => {
             if (c.name.toLowerCase().includes(custSearchTerm) || c.address.toLowerCase().includes(custSearchTerm)) {
-                custUIHTML += `<div class="db-list-item">
-                    <div><strong style="color:var(--primary);">${c.name}</strong><br><span style="color:var(--text-muted);">${c.address}</span></div>
-                    <div><button class="edit-btn" style="opacity:1;" onclick="editCustomerDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteCustomerDB(${index})">✖</button></div>
-                </div>`;
+                custUIHTML += `<div class="db-list-item"><div><strong style="color:var(--primary);">${c.name}</strong><br><span style="color:var(--text-muted);">${c.address}</span></div>
+                    <div><button class="edit-btn" style="opacity:1;" onclick="editCustomerDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteCustomerDB(${index})">✖</button></div></div>`;
             }
         });
         document.getElementById('customerDBList').innerHTML = custUIHTML;
@@ -1313,213 +1168,106 @@
         let prodUIHTML = '';
         productsDB.forEach((p, index) => {
             if (p.name.toLowerCase().includes(itemSearchTerm) || (p.desc && p.desc.toLowerCase().includes(itemSearchTerm))) {
-                prodUIHTML += `<div class="db-list-item">
-                    <div><strong style="color:var(--primary);">${p.name}</strong><br><span style="color:var(--secondary); font-weight:700;">LKR ${formatMoney(p.price)}</span></div>
-                    <div><button class="edit-btn" style="opacity:1;" onclick="editItemDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteItemDB(${index})">✖</button></div>
-                </div>`;
+                prodUIHTML += `<div class="db-list-item"><div><strong style="color:var(--primary);">${p.name}</strong><br><span style="color:var(--secondary); font-weight:700;">LKR ${formatMoney(p.price)}</span></div>
+                    <div><button class="edit-btn" style="opacity:1;" onclick="editItemDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteItemDB(${index})">✖</button></div></div>`;
             }
         });
         document.getElementById('itemDBList').innerHTML = prodUIHTML;
     }
 
     function editCustomerDB(index) {
-        let cust = customersDB[index];
-        document.getElementById('dbCustName').value = cust.name; document.getElementById('dbCustAddress').value = cust.address;
-        editingDbCustIndex = index;
-        let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add');
-        btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
+        let cust = customersDB[index]; document.getElementById('dbCustName').value = cust.name; document.getElementById('dbCustAddress').value = cust.address; editingDbCustIndex = index;
+        let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
     }
 
     function editItemDB(index) {
-        let item = productsDB[index];
-        document.getElementById('dbItemName').value = item.name; document.getElementById('dbItemDesc').value = item.desc; document.getElementById('dbItemPrice').value = item.price;
-        editingDbItemIndex = index;
-        let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add');
-        btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
+        let item = productsDB[index]; document.getElementById('dbItemName').value = item.name; document.getElementById('dbItemDesc').value = item.desc; document.getElementById('dbItemPrice').value = item.price; editingDbItemIndex = index;
+        let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
     }
 
     function switchTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active'); btn.classList.add('active');
     }
 
     function updateTheme() {
-        let pColor = document.getElementById('primaryColor').value;
-        let sColor = document.getElementById('secondaryColor').value;
+        let pColor = document.getElementById('primaryColor').value; let sColor = document.getElementById('secondaryColor').value;
         let r = parseInt(pColor.slice(1, 3), 16), g = parseInt(pColor.slice(3, 5), 16), b = parseInt(pColor.slice(5, 7), 16);
-        document.documentElement.style.setProperty('--primary', pColor);
-        document.documentElement.style.setProperty('--secondary', sColor);
-        document.documentElement.style.setProperty('--row-alt-bg', `rgba(${r}, ${g}, ${b}, 0.03)`);
-        document.documentElement.style.setProperty('--theme-fade', `rgba(${r}, ${g}, ${b}, 0.05)`);
-        document.documentElement.style.setProperty('--logo-width', document.getElementById('logoSize').value + 'px');
-        document.documentElement.style.setProperty('--sign-width', document.getElementById('sigSize').value + 'px');
+        document.documentElement.style.setProperty('--primary', pColor); document.documentElement.style.setProperty('--secondary', sColor);
+        document.documentElement.style.setProperty('--row-alt-bg', `rgba(${r}, ${g}, ${b}, 0.03)`); document.documentElement.style.setProperty('--theme-fade', `rgba(${r}, ${g}, ${b}, 0.05)`);
+        document.documentElement.style.setProperty('--logo-width', document.getElementById('logoSize').value + 'px'); document.documentElement.style.setProperty('--sign-width', document.getElementById('sigSize').value + 'px');
     }
 
     function updateSignatureDisplay() {
-        if (document.getElementById('sigType').value === 'electronic') {
-            document.getElementById('sigUploadControls').style.display = 'none';
-            document.getElementById('sigAreaImage').style.display = 'none';
-            document.getElementById('sigAreaText').style.display = 'block';
-        } else {
-            document.getElementById('sigUploadControls').style.display = 'block';
-            document.getElementById('sigAreaImage').style.display = 'block';
-            document.getElementById('sigAreaText').style.display = 'none';
-        }
+        if (document.getElementById('sigType').value === 'electronic') { document.getElementById('sigUploadControls').style.display = 'none'; document.getElementById('sigAreaImage').style.display = 'none'; document.getElementById('sigAreaText').style.display = 'block'; } 
+        else { document.getElementById('sigUploadControls').style.display = 'block'; document.getElementById('sigAreaImage').style.display = 'block'; document.getElementById('sigAreaText').style.display = 'none'; }
     }
 
     function loadFile(event, previewId, fallbackId = null) {
-        let reader = new FileReader();
-        reader.onload = function() {
-            let output = document.getElementById(previewId); output.src = reader.result; output.style.display = 'block';
-            if(fallbackId) document.getElementById(fallbackId).style.display = 'none';
-        };
+        let reader = new FileReader(); reader.onload = function() { let output = document.getElementById(previewId); output.src = reader.result; output.style.display = 'block'; if(fallbackId) document.getElementById(fallbackId).style.display = 'none'; };
         if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
     }
-    function loadLogo(e) { loadFile(e, 'logoPreview', 'logoTextFallback'); }
-    function loadSignature(e) { loadFile(e, 'sigPreview'); }
-    function loadBankLogo(e) { loadFile(e, 'bankLogoPreview', 'bankLogoFallback'); updateView(); }
+    function loadLogo(e) { loadFile(e, 'logoPreview', 'logoTextFallback'); } function loadSignature(e) { loadFile(e, 'sigPreview'); } function loadBankLogo(e) { loadFile(e, 'bankLogoPreview', 'bankLogoFallback'); updateView(); }
 
     function handleDocTypeChange() {
-        let type = document.getElementById('docType').value;
-        if (!originalDocNo) document.getElementById('docNo').value = getNextDocNo(type);
-        if(type === 'QUOTATION') {
-            document.getElementById('validDateControl').style.display = 'block'; document.getElementById('displayValidDateArea').style.display = 'block'; 
-            handleDocDateChange();
-        } else {
-            document.getElementById('validDateControl').style.display = 'none'; document.getElementById('displayValidDateArea').style.display = 'none'; 
-        }
+        let type = document.getElementById('docType').value; if (!originalDocNo) document.getElementById('docNo').value = getNextDocNo(type);
+        if(type === 'QUOTATION') { document.getElementById('validDateControl').style.display = 'block'; document.getElementById('displayValidDateArea').style.display = 'block'; handleDocDateChange(); } 
+        else { document.getElementById('validDateControl').style.display = 'none'; document.getElementById('displayValidDateArea').style.display = 'none'; }
         updateView();
     }
 
-    function formatDate(dateStr) {
-        if(!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' });
-    }
+    function formatDate(dateStr) { if(!dateStr) return ''; return new Date(dateStr).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' }); }
 
     function updateView() {
-        document.getElementById('displayDocType').innerText = document.getElementById('docType').value;
-        document.getElementById('displayDocNo').innerText = document.getElementById('docNo').value;
-        document.getElementById('displayDate').innerText = formatDate(document.getElementById('docDate').value);
-        document.getElementById('displayValidDate').innerText = formatDate(document.getElementById('validDate').value);
-        
-        let cName = document.getElementById('compName').value;
-        document.getElementById('displayCompName').innerText = cName || 'Business Name';
-        document.getElementById('logoTextFallback').innerText = cName || 'Business Name';
-        document.getElementById('displayCompAddress').innerText = document.getElementById('compAddress').value;
-        
-        let custName = document.getElementById('custName').value;
-        document.getElementById('displayCustName').innerText = custName || 'Customer Name';
-        document.getElementById('displayCustAddress').innerText = document.getElementById('custAddress').value;
-        
-        let n1Text = document.getElementById('notes').value;
-        document.getElementById('dispNote1Heading').innerText = document.getElementById('note1Heading').value || 'Notes';
-        document.getElementById('displayNotes').innerText = n1Text;
-        document.getElementById('notesAreaContainer1').style.display = n1Text.trim() ? 'block' : 'none';
-
-        let n2Text = document.getElementById('note2Text').value;
-        document.getElementById('dispNote2Heading').innerText = document.getElementById('note2Heading').value || 'Terms & Conditions';
-        document.getElementById('displayNote2Text').innerText = n2Text;
-        document.getElementById('notesAreaContainer2').style.display = n2Text.trim() ? 'block' : 'none';
-
-        if(document.getElementById('showBank').checked) {
-            document.getElementById('bankDisplayBox').style.display = 'flex';
-            document.getElementById('dispBankName').innerText = document.getElementById('bankName').value || '-';
-            document.getElementById('dispAccName').innerText = document.getElementById('accName').value || '-';
-            document.getElementById('dispAccNo').innerText = document.getElementById('accNo').value || '-';
-            document.getElementById('dispBranch').innerText = document.getElementById('bankBranch').value || '-';
-        } else { document.getElementById('bankDisplayBox').style.display = 'none'; }
-
+        document.getElementById('displayDocType').innerText = document.getElementById('docType').value; document.getElementById('displayDocNo').innerText = document.getElementById('docNo').value;
+        document.getElementById('displayDate').innerText = formatDate(document.getElementById('docDate').value); document.getElementById('displayValidDate').innerText = formatDate(document.getElementById('validDate').value);
+        let cName = document.getElementById('compName').value; document.getElementById('displayCompName').innerText = cName || 'Business Name'; document.getElementById('logoTextFallback').innerText = cName || 'Business Name'; document.getElementById('displayCompAddress').innerText = document.getElementById('compAddress').value;
+        let custName = document.getElementById('custName').value; document.getElementById('displayCustName').innerText = custName || 'Customer Name'; document.getElementById('displayCustAddress').innerText = document.getElementById('custAddress').value;
+        let n1Text = document.getElementById('notes').value; document.getElementById('dispNote1Heading').innerText = document.getElementById('note1Heading').value || 'Notes'; document.getElementById('displayNotes').innerText = n1Text; document.getElementById('notesAreaContainer1').style.display = n1Text.trim() ? 'block' : 'none';
+        let n2Text = document.getElementById('note2Text').value; document.getElementById('dispNote2Heading').innerText = document.getElementById('note2Heading').value || 'Terms & Conditions'; document.getElementById('displayNote2Text').innerText = n2Text; document.getElementById('notesAreaContainer2').style.display = n2Text.trim() ? 'block' : 'none';
+        if(document.getElementById('showBank').checked) { document.getElementById('bankDisplayBox').style.display = 'flex'; document.getElementById('dispBankName').innerText = document.getElementById('bankName').value || '-'; document.getElementById('dispAccName').innerText = document.getElementById('accName').value || '-'; document.getElementById('dispAccNo').innerText = document.getElementById('accNo').value || '-'; document.getElementById('dispBranch').innerText = document.getElementById('bankBranch').value || '-'; } else { document.getElementById('bankDisplayBox').style.display = 'none'; }
         document.title = `${custName ? custName : 'Customer'} - ${document.getElementById('docNo').value ? document.getElementById('docNo').value : 'Invoice'}`;
     }
 
-    function handleWarrantyChange() {
-        document.getElementById('itemWarrantyCustom').style.display = document.getElementById('itemWarrantySelect').value === 'custom' ? 'block' : 'none';
-    }
+    function handleWarrantyChange() { document.getElementById('itemWarrantyCustom').style.display = document.getElementById('itemWarrantySelect').value === 'custom' ? 'block' : 'none'; }
 
     function editItem(index) {
-        let item = itemsList[index];
-        document.getElementById('itemName').value = item.name; document.getElementById('itemDesc').value = item.desc;
-        document.getElementById('itemPrice').value = item.price; document.getElementById('itemDiscount').value = item.discount || '';
-        document.getElementById('itemQty').value = item.qty;
-
-        let wSelect = document.getElementById('itemWarrantySelect'); let wCustom = document.getElementById('itemWarrantyCustom');
-        let predefined = ["1 Year Warranty", "2 Years Warranty", "3 Years Warranty", "6 Months Warranty", "3 Months Warranty"];
-        
-        if (!item.warranty || item.warranty === "") { wSelect.value = "none"; wCustom.style.display = "none"; } 
-        else if (predefined.includes(item.warranty)) { wSelect.value = item.warranty; wCustom.style.display = "none"; } 
-        else { wSelect.value = "custom"; wCustom.style.display = "block"; wCustom.value = item.warranty; }
-
-        editingIndex = index;
-        let btn = document.getElementById('itemActionBtn');
-        btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
-        document.getElementById('itemEntryTitle').innerText = "Edit Item";
-        document.getElementById('itemInputBox').style.borderColor = "var(--secondary)"; document.getElementById('itemInputBox').style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
-        switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
+        let item = itemsList[index]; document.getElementById('itemName').value = item.name; document.getElementById('itemDesc').value = item.desc; document.getElementById('itemPrice').value = item.price; document.getElementById('itemDiscount').value = item.discount || ''; document.getElementById('itemQty').value = item.qty;
+        let wSelect = document.getElementById('itemWarrantySelect'); let wCustom = document.getElementById('itemWarrantyCustom'); let predefined = ["1 Year Warranty", "2 Years Warranty", "3 Years Warranty", "6 Months Warranty", "3 Months Warranty"];
+        if (!item.warranty || item.warranty === "") { wSelect.value = "none"; wCustom.style.display = "none"; } else if (predefined.includes(item.warranty)) { wSelect.value = item.warranty; wCustom.style.display = "none"; } else { wSelect.value = "custom"; wCustom.style.display = "block"; wCustom.value = item.warranty; }
+        editingIndex = index; let btn = document.getElementById('itemActionBtn'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
+        document.getElementById('itemEntryTitle').innerText = "Edit Item"; document.getElementById('itemInputBox').style.borderColor = "var(--secondary)"; document.getElementById('itemInputBox').style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)"; switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
     }
 
     function resetItemForm() {
-        document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = '';
-        document.getElementById('itemPrice').value = ''; document.getElementById('itemDiscount').value = ''; document.getElementById('itemQty').value = '1';
-        editingIndex = -1;
-        let btn = document.getElementById('itemActionBtn'); btn.innerHTML = "+ Add to List"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)";
-        document.getElementById('itemEntryTitle').innerText = "Add Item";
-        document.getElementById('itemInputBox').style.borderColor = "var(--border)"; document.getElementById('itemInputBox').style.boxShadow = "none";
+        document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = ''; document.getElementById('itemPrice').value = ''; document.getElementById('itemDiscount').value = ''; document.getElementById('itemQty').value = '1'; editingIndex = -1;
+        let btn = document.getElementById('itemActionBtn'); btn.innerHTML = "+ Add to List"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)"; document.getElementById('itemEntryTitle').innerText = "Add Item"; document.getElementById('itemInputBox').style.borderColor = "var(--border)"; document.getElementById('itemInputBox').style.boxShadow = "none";
     }
 
     function handleItemAction() {
-        let name = document.getElementById('itemName').value; let desc = document.getElementById('itemDesc').value;
-        let price = parseFloat(document.getElementById('itemPrice').value) || 0; let discount = parseFloat(document.getElementById('itemDiscount').value) || 0; let qty = parseFloat(document.getElementById('itemQty').value) || 1;
-        if (name.trim() === "" || price === 0) return showAlertModal("Missing Info", "කරුණාකර Item Name සහ Price ඇතුලත් කරන්න!");
-        if (discount > price) return showAlertModal("Invalid Discount", "Discount එක භාණ්ඩයේ මිලට වඩා වැඩි විය නොහැක!");
-
-        let wSelect = document.getElementById('itemWarrantySelect').value;
-        let warranty = wSelect === 'custom' ? document.getElementById('itemWarrantyCustom').value : (wSelect !== 'none' ? wSelect : '');
-        let newItem = { name, desc, warranty, price, discount, qty };
-
-        if (editingIndex === -1) itemsList.push(newItem); else itemsList[editingIndex] = newItem;
-        resetItemForm(); renderTable();
+        let name = document.getElementById('itemName').value; let desc = document.getElementById('itemDesc').value; let price = parseFloat(document.getElementById('itemPrice').value) || 0; let discount = parseFloat(document.getElementById('itemDiscount').value) || 0; let qty = parseFloat(document.getElementById('itemQty').value) || 1;
+        if (name.trim() === "" || price === 0) return showAlertModal("Missing Info", "කරුණාකර Item Name සහ Price ඇතුලත් කරන්න!"); if (discount > price) return showAlertModal("Invalid Discount", "Discount එක භාණ්ඩයේ මිලට වඩා වැඩි විය නොහැක!");
+        let wSelect = document.getElementById('itemWarrantySelect').value; let warranty = wSelect === 'custom' ? document.getElementById('itemWarrantyCustom').value : (wSelect !== 'none' ? wSelect : ''); let newItem = { name, desc, warranty, price, discount, qty };
+        if (editingIndex === -1) itemsList.push(newItem); else itemsList[editingIndex] = newItem; resetItemForm(); renderTable();
     }
 
-    function deleteItem(index) {
-        itemsList.splice(index, 1);
-        if (editingIndex === index) resetItemForm(); else if (editingIndex > index) editingIndex--; 
-        renderTable();
-    }
+    function deleteItem(index) { itemsList.splice(index, 1); if (editingIndex === index) resetItemForm(); else if (editingIndex > index) editingIndex--; renderTable(); }
 
     function formatMoney(amount) { return amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'); }
 
     function renderTable() {
         let hasDiscount = itemsList.some(item => item.discount > 0);
-        document.getElementById('tableHead').innerHTML = `<tr>
-            <th style="width: ${hasDiscount ? '40%' : '50%'};">Description</th><th class="text-center" style="width: 10%;">Qty</th><th class="text-right" style="width: 15%;">Rate</th>
-            ${hasDiscount ? '<th class="text-right" style="width: 15%;">Disc.</th>' : ''}
-            <th class="text-right total-col" style="width: 20%;">Total</th><th class="action-col"></th>
-        </tr>`;
-
-        let tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
-        let grossTotal = 0, totalDiscount = 0;
-
+        document.getElementById('tableHead').innerHTML = `<tr><th style="width: ${hasDiscount ? '40%' : '50%'};">Description</th><th class="text-center" style="width: 10%;">Qty</th><th class="text-right" style="width: 15%;">Rate</th>${hasDiscount ? '<th class="text-right" style="width: 15%;">Disc.</th>' : ''}<th class="text-right total-col" style="width: 20%;">Total</th><th class="action-col"></th></tr>`;
+        let tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; let grossTotal = 0, totalDiscount = 0;
         itemsList.forEach((item, index) => {
-            let itemGross = item.price * item.qty, itemDiscTotal = item.discount * item.qty, itemNet = itemGross - itemDiscTotal;
-            grossTotal += itemGross; totalDiscount += itemDiscTotal;
-            
-            tbody.innerHTML += `<tr>
-                <td><span class="item-main">${item.name}</span>${item.desc ? `<span class="item-sub">${item.desc}</span>` : ''}${item.warranty ? `<div class="warranty-badge">${item.warranty}</div>` : ''}</td>
-                <td class="text-center">${item.qty}</td><td class="text-right">${formatMoney(item.price)}</td>
-                ${hasDiscount ? `<td class="text-right">${item.discount > 0 ? formatMoney(item.discount) : '-'}</td>` : ''}
-                <td class="text-right" style="font-weight:600; color:var(--text-main);">${formatMoney(itemNet)}</td>
-                <td class="action-col"><button class="edit-btn" onclick="editItem(${index})">✏️</button><button class="del-btn" onclick="deleteItem(${index})">✖</button></td>
-            </tr>`;
+            let itemGross = item.price * item.qty, itemDiscTotal = item.discount * item.qty, itemNet = itemGross - itemDiscTotal; grossTotal += itemGross; totalDiscount += itemDiscTotal;
+            tbody.innerHTML += `<tr><td><span class="item-main">${item.name}</span>${item.desc ? `<span class="item-sub">${item.desc}</span>` : ''}${item.warranty ? `<div class="warranty-badge">${item.warranty}</div>` : ''}</td><td class="text-center">${item.qty}</td><td class="text-right">${formatMoney(item.price)}</td>${hasDiscount ? `<td class="text-right">${item.discount > 0 ? formatMoney(item.discount) : '-'}</td>` : ''}<td class="text-right" style="font-weight:600; color:var(--text-main);">${formatMoney(itemNet)}</td><td class="action-col"><button class="edit-btn" onclick="editItem(${index})">✏️</button><button class="del-btn" onclick="deleteItem(${index})">✖</button></td></tr>`;
         });
-
-        document.getElementById('subTotal').innerText = 'LKR ' + formatMoney(grossTotal);
-        document.getElementById('discountRow').style.display = totalDiscount > 0 ? 'flex' : 'none';
-        if (totalDiscount > 0) document.getElementById('totalDiscountAmt').innerText = '- LKR ' + formatMoney(totalDiscount);
-        document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(grossTotal - totalDiscount);
+        document.getElementById('subTotal').innerText = 'LKR ' + formatMoney(grossTotal); document.getElementById('discountRow').style.display = totalDiscount > 0 ? 'flex' : 'none'; if (totalDiscount > 0) document.getElementById('totalDiscountAmt').innerText = '- LKR ' + formatMoney(totalDiscount); document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(grossTotal - totalDiscount);
     }
 
-    document.addEventListener("DOMContentLoaded", initAuth); 
+    // Load setup buttons immediately on load
+    setupAuthButtons();
 </script>
 
 </body>
