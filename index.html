@@ -47,22 +47,78 @@
             user-select: auto;
         }
         
-        /* LOGIN & RECOVERY SCREEN CSS */
-        #loginScreen, #recoveryScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        #recoveryScreen { display: none; } /* Hidden by default */
+        /* --- MODERN LOGIN SCREEN CSS --- */
+        #loginScreen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            /* Beautiful Animated Gradient Background */
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #3b82f6, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex; align-items: center; justify-content: center; z-index: 9999; 
+        }
 
-        .login-box { background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border); }
-        .login-box h2 { color: var(--primary); margin-top: 0; margin-bottom: 25px; font-weight: 800; font-size: 24px; }
-        .login-box input[type="text"], .login-box input[type="email"], .login-box input[type="password"] { width: 100%; padding: 14px; margin-bottom: 15px; border: 2px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        .login-box input:focus { border-color: var(--secondary); }
-        .login-box .btn { margin-top: 10px; }
-        .login-box .login-options { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 20px; }
-        .login-box .forgot-link { color: var(--secondary); cursor: pointer; font-weight: 600; text-decoration: underline; }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-        .password-container { position: relative; width: 100%; }
-        .eye-icon { position: absolute; right: 15px; top: 14px; cursor: pointer; font-size: 16px; color: var(--text-muted); opacity: 0.7; transition: 0.2s;}
+        .login-box { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            padding: 45px 40px; 
+            border-radius: 24px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
+            width: 100%; max-width: 400px; 
+            text-align: center; 
+            border: 1px solid rgba(255,255,255,0.2); 
+            /* Slide Up Animation */
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box h2 { color: var(--primary); margin-top: 0; margin-bottom: 5px; font-weight: 800; font-size: 26px; }
+        .login-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
+        
+        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group i { position: absolute; left: 16px; top: 15px; font-style: normal; font-size: 16px; color: var(--text-muted); }
+        .input-group input { 
+            width: 100%; padding: 14px 14px 14px 45px !important; margin-bottom: 0 !important;
+            border: 2px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 14px; 
+            box-sizing: border-box; outline: none; transition: 0.3s; background: #f8fafc;
+        }
+        .input-group input:focus { border-color: var(--secondary); background: var(--white); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);}
+
+        .login-box .btn { margin-top: 10px; border-radius: 12px; padding: 15px; font-size: 15px; letter-spacing: 0.5px;}
+        .login-options { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 25px; margin-top: 5px;}
+        .forgot-link { color: var(--secondary); cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .forgot-link:hover { color: var(--primary); text-decoration: underline; }
+
+        .eye-icon { position: absolute; right: 15px; top: 14px; cursor: pointer; font-size: 16px; color: var(--text-muted); opacity: 0.7; transition: 0.2s; z-index: 10;}
         .eye-icon:hover { opacity: 1; }
 
+        /* --- GLOBAL LOADING SCREEN CSS --- */
+        #globalLoader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000000; opacity: 0; pointer-events: none; transition: 0.4s;
+        }
+        #globalLoader.show { opacity: 1; pointer-events: auto; }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.2);
+            border-top-color: #3b82f6; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .loader-text { color: white; font-weight: 600; font-size: 15px; letter-spacing: 1px; animation: pulseText 1.5s infinite;}
+        @keyframes pulseText { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* CUSTOM DROPDOWN CSS */
         .dropdown-wrapper { position: relative; width: 100%; }
         .custom-dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto; z-index: 100; display: none; margin-top: 4px; }
         .custom-dropdown div { padding: 10px 15px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
@@ -141,6 +197,7 @@
         .modern-table th:first-child { border-top-left-radius: 6px; border-bottom-left-radius: 6px;}
         .modern-table th.total-col { border-top-right-radius: 6px; border-bottom-right-radius: 6px; } 
         .modern-table th.action-col { background: transparent; border: none; width: 55px; padding: 0;}
+        
         .modern-table td { padding: 10px 12px; vertical-align: top; border-bottom: 1px solid var(--border); font-size: 13px; background-color: var(--white); }
         .modern-table tbody tr:nth-child(even) td { background-color: var(--row-alt-bg); }
         
@@ -199,6 +256,7 @@
         .hist-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; background: #e0f2fe; color: #0284c7;}
         .hist-badge.quo { background: #fef3c7; color: #d97706; }
 
+        /* CUSTOM MODAL CSS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 100000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(2px);}
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
         .modal-box { background: white; padding: 25px; border-radius: 16px; width: 350px; max-width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: translateY(20px); transition: 0.3s; }
@@ -259,45 +317,41 @@
             .bottom-section { page-break-inside: avoid; }
             #notesAreaContainer1, #notesAreaContainer2 { page-break-inside: avoid; }
             .modal-overlay { display: none !important; }
+            #globalLoader { display: none !important; }
         }
     </style>
 </head>
 <body>
 
+<div id="globalLoader">
+    <div class="spinner"></div>
+    <div class="loader-text" id="loaderText">Loading Secure System...</div>
+</div>
+
 <div id="loginScreen">
     <div class="login-box">
         <h2>🔒 Secure Login</h2>
-        <input type="email" id="loginUser" placeholder="Email Address (e.g. admin@invoice.com)">
+        <p class="login-subtitle">Enter your credentials to access the system</p>
         
-        <div class="password-container">
+        <div class="input-group">
+            <i>👤</i>
+            <input type="email" id="loginUser" placeholder="Email Address">
+        </div>
+        
+        <div class="input-group password-container">
+            <i>🔑</i>
             <input type="password" id="loginPass" placeholder="Password">
             <span class="eye-icon" onclick="togglePassword('loginPass')">👁️</span>
         </div>
         
         <div class="login-options">
-            <label style="display:flex; align-items:center; gap:5px; margin:0; cursor:pointer;">
+            <label style="display:flex; align-items:center; gap:5px; margin:0; cursor:pointer; color: var(--text-main);">
                 <input type="checkbox" id="rememberMe" style="width:16px; height:16px; margin:0; accent-color:var(--secondary);"> Remember me
             </label>
             <span class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</span>
         </div>
         
         <button class="btn" onclick="attemptLogin()">Login Securely</button>
-    </div>
-</div>
-
-<div id="recoveryScreen">
-    <div class="login-box">
-        <h2>🔑 Set New Password</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-top: -15px; margin-bottom: 20px;">
-            Please enter your new password below.
-        </p>
-        
-        <div class="password-container">
-            <input type="password" id="recoveryNewPass" placeholder="New Password">
-            <span class="eye-icon" onclick="togglePassword('recoveryNewPass')">👁️</span>
-        </div>
-        
-        <button class="btn" onclick="completePasswordRecovery()">Save New Password</button>
     </div>
 </div>
 
@@ -603,6 +657,17 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="customPromptModal">
+    <div class="modal-box">
+        <h3 id="promptTitle">Title</h3>
+        <p id="promptMessage">Message goes here</p>
+        <div class="password-container">
+            <input type="password" id="promptInput" style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; margin-bottom: 20px; outline: none; text-align: center; font-size: 16px; font-weight: bold; letter-spacing: 2px;">
+        </div>
+        <div class="modal-actions" id="promptActions"></div>
+    </div>
+</div>
+
 <script>
     // ==========================================
     // 1. SUPABASE CONFIGURATION
@@ -610,47 +675,127 @@
     const supabaseUrl = 'https://gseawgjmvcpaxgnqsxry.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZWF3Z2ptdmNwYXhnbnFzeHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MjM5NzEsImV4cCI6MjA4NzM5OTk3MX0.u2nbmLNBxvwfbOhb7JtXpTo0Ax6pW0OjjWhQe1VJBNM';
     
-    let supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    let supabaseClient = null;
+    try {
+        if(window.supabase) {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        }
+    } catch(e) {
+        console.error("Supabase initialization error");
+    }
 
     // ==========================================
-    // 2. REAL AUTHENTICATION & PASSWORD RECOVERY
+    // 2. LOADING SCREEN & MODALS LOGIC
     // ==========================================
-    
+    function showLoader(text) {
+        document.getElementById('loaderText').innerText = text;
+        document.getElementById('globalLoader').classList.add('show');
+    }
+    function hideLoader() {
+        document.getElementById('globalLoader').classList.remove('show');
+    }
+
+    let modalCallback = null;
+    let promptCallback = null;
+
+    function closeCustomModal() { document.getElementById('customModal').classList.remove('show'); }
+    function closePromptModal() { document.getElementById('customPromptModal').classList.remove('show'); }
+
+    function showAlertModal(title, msg) {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalMessage').innerText = msg;
+        document.getElementById('modalActions').innerHTML = `<button class="modal-btn modal-btn-confirm" onclick="closeCustomModal()">OK</button>`;
+        document.getElementById('customModal').classList.add('show');
+    }
+
+    function showConfirmModal(title, msg, confirmText, btnClass, callback) {
+        document.getElementById('modalTitle').innerText = title; 
+        document.getElementById('modalMessage').innerText = msg; 
+        modalCallback = callback;
+        document.getElementById('modalActions').innerHTML = `<button class="modal-btn modal-btn-cancel" onclick="closeCustomModal()">Cancel</button><button class="modal-btn ${btnClass}" onclick="executeModalCallback()">${confirmText}</button>`;
+        document.getElementById('customModal').classList.add('show');
+    }
+
+    function showPromptModal(title, msg, callback) {
+        document.getElementById('promptTitle').innerText = title;
+        document.getElementById('promptMessage').innerText = msg;
+        let inp = document.getElementById('promptInput');
+        inp.value = '';
+        promptCallback = callback;
+        document.getElementById('promptActions').innerHTML = `<button class="modal-btn modal-btn-cancel" onclick="closePromptModal()">Cancel</button><button class="modal-btn modal-btn-confirm" onclick="executePromptCallback()">Verify</button>`;
+        document.getElementById('customPromptModal').classList.add('show');
+        setTimeout(() => inp.focus(), 100);
+    }
+
+    function executeModalCallback() { closeCustomModal(); if(modalCallback) modalCallback(); }
+    function executePromptCallback() { 
+        let val = document.getElementById('promptInput').value;
+        closePromptModal(); 
+        if(promptCallback) promptCallback(val); 
+    }
+
     function togglePassword(inputId) {
         let input = document.getElementById(inputId);
         input.type = input.type === "password" ? "text" : "password";
     }
 
+    // ==========================================
+    // 3. APP VARIABLES
+    // ==========================================
+    let dbCache = {};
+    let itemsList = [];
+    let editingIndex = -1;
+    let editingDbCustIndex = -1;
+    let editingDbItemIndex = -1;
+    let originalDocNo = null;
+
+    let customersDB = [];
+    let productsDB = [];
+    let docHistory = [];
+    let profileList = [];
+    let currentBizListenerRef = null;
+    
+    let systemAuth = { user: "Ashen9666@", pass: "Ashen9666@" };
+    const defaultProfileList = [{ id: "biz1", name: "🏢 Default Business" }];
+
+    // ==========================================
+    // 4. AUTHENTICATION & LOGIN LOGIC
+    // ==========================================
     async function setupAuthButtons() {
+        if(!supabaseClient) {
+            showAlertModal("Error", "No Database Connection");
+            return;
+        }
+
         const { data: { session } } = await supabaseClient.auth.getSession();
         
         if (session) {
+            showLoader("Loading Database...");
             showApp();
         } else {
-            document.getElementById('loginScreen').style.display = 'flex';
+            // Background fetch just to have credentials ready for the old login flow simulation
+            supabaseClient.from('json_store').select('data').eq('id', 'admin/credentials').single()
+            .then((res) => {
+                if(res.data && res.data.data) systemAuth = res.data.data;
+            });
         }
         
-        // Listen for Auth Events (including clicking the reset link from the email)
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT') {
                 document.getElementById('mainApp').style.display = 'none';
-                document.getElementById('recoveryScreen').style.display = 'none';
                 document.getElementById('loginScreen').style.display = 'flex';
             } 
-            else if (event === 'PASSWORD_RECOVERY') {
-                // When user clicks the link in their email, they come back here
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'none';
-                document.getElementById('recoveryScreen').style.display = 'flex';
-            }
         });
     }
 
     async function attemptLogin() {
         let email = document.getElementById('loginUser').value.trim();
         let pass = document.getElementById('loginPass').value.trim();
+        let remember = document.getElementById('rememberMe').checked;
         
         if (!email || !pass) return showAlertModal("Error", "Please enter your Email and Password");
+
+        showLoader("Authenticating...");
 
         const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
@@ -658,57 +803,35 @@
         });
 
         if (error) {
+            hideLoader();
             showAlertModal("Login Failed", "Incorrect Email or Password.");
         } else {
+            if (remember) localStorage.setItem('invoice_logged_in', 'true');
             document.getElementById('loginUser').value = '';
             document.getElementById('loginPass').value = '';
+            showLoader("Loading Database...");
             showApp();
         }
     }
 
     async function logout() {
+        showLoader("Logging out...");
+        localStorage.removeItem('invoice_logged_in');
         await supabaseClient.auth.signOut();
+        hideLoader();
     }
 
-    // --- SEND EMAIL RESET LINK ---
-    async function handleForgotPassword() {
-        let email = prompt("Please enter the email address you registered with:");
-        if (!email || email.trim() === "") return;
-
-        const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email.trim(), {
-            // This tells Supabase where to send the user back to after clicking the link
-            redirectTo: window.location.href 
+    // In-App Custom Prompt for Forget Password
+    function handleForgotPassword() {
+        showPromptModal("Password Recovery", "Please enter the Security Recovery PIN:", function(pin) {
+            if(pin === "200411501558") {
+                showAlertModal("Recovery Successful", `Username: ${systemAuth.user}\nPassword: ${systemAuth.pass}`);
+            } else if (pin) {
+                showAlertModal("Access Denied", "Incorrect Security PIN!");
+            }
         });
-
-        if (error) {
-            showAlertModal("Error", error.message);
-        } else {
-            showAlertModal("Email Sent!", "A secure password reset link has been sent to your email. Please check your inbox (and spam folder).");
-        }
     }
 
-    // --- SAVE NEW PASSWORD FROM RECOVERY SCREEN ---
-    async function completePasswordRecovery() {
-        let newPass = document.getElementById('recoveryNewPass').value.trim();
-        
-        if (!newPass) return showAlertModal("Error", "Please enter a new password.");
-
-        const { error } = await supabaseClient.auth.updateUser({ password: newPass });
-        
-        if (error) {
-            showAlertModal("Error", error.message);
-        } else {
-            showAlertModal("Success!", "Your password has been successfully reset. You can now login with your new password.");
-            document.getElementById('recoveryNewPass').value = '';
-            // Go back to login screen
-            document.getElementById('recoveryScreen').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'flex';
-            // Log them out to force a clean login with the new password
-            await supabaseClient.auth.signOut();
-        }
-    }
-
-    // --- UPDATE PASSWORD FROM INSIDE SETTINGS TAB ---
     async function updateCredentials() {
         let oldP = document.getElementById('oldPassword').value.trim();
         let newP = document.getElementById('newPassword').value.trim();
@@ -728,23 +851,26 @@
         }
 
         showConfirmModal("Confirm Change", "Are you sure you want to update the password?", "Update", "modal-btn-confirm", async function() {
+            showLoader("Updating Password...");
             const { error: updateError } = await supabaseClient.auth.updateUser({ password: newP });
+            hideLoader();
+            
             if (updateError) {
                 showAlertModal("Error", updateError.message);
             } else {
                 document.getElementById('oldPassword').value = '';
                 document.getElementById('newPassword').value = '';
+                // Also update local fallback
+                systemAuth.pass = newP;
+                saveDb('admin/credentials', systemAuth);
                 showAlertModal("Success", "Password updated successfully.");
             }
         });
     }
 
     // ==========================================
-    // SUPABASE DB WRAPPER (Protected by RLS)
+    // SUPABASE DB WRAPPER
     // ==========================================
-    let dbListeners = {};
-    let dbCache = {};
-
     supabaseClient.channel('any_change')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'json_store' }, payload => {
             let id = payload.new.id;
@@ -771,28 +897,10 @@
     }
 
     // ==========================================
-    // 3. APP VARIABLES
-    // ==========================================
-    let itemsList = [];
-    let editingIndex = -1;
-    let editingDbCustIndex = -1;
-    let editingDbItemIndex = -1;
-    let originalDocNo = null;
-
-    let customersDB = [];
-    let productsDB = [];
-    let docHistory = [];
-    let profileList = [];
-    let currentBizListenerRef = null;
-    
-    const defaultProfileList = [{ id: "biz1", name: "🏢 Default Business" }];
-
-    // ==========================================
     // DATABASE FETCH & SYNC
     // ==========================================
     function showApp() {
         document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('recoveryScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         
         onDbChange('global/profileList', (data) => {
@@ -816,12 +924,8 @@
         let activeBiz = document.getElementById('profileSelect').value;
         if (!activeBiz) return; 
 
-        customersDB = [];
-        productsDB = [];
-        docHistory = [];
-        renderDBLists();
-        renderHistory();
-        resetInvoiceForm();
+        customersDB = []; productsDB = []; docHistory = [];
+        renderDBLists(); renderHistory(); resetInvoiceForm();
 
         if (currentBizListenerRef && currentBizListenerRef !== activeBiz) {
             delete dbListeners['profiles/' + currentBizListenerRef];
@@ -858,7 +962,6 @@
                 document.getElementById('logoPreview').style.display = 'none';
                 document.getElementById('logoTextFallback').style.display = 'block';
             }
-
             if(profile.bankLogoBase64) {
                 document.getElementById('bankLogoPreview').src = profile.bankLogoBase64;
                 document.getElementById('bankLogoPreview').style.display = 'block';
@@ -867,7 +970,6 @@
                 document.getElementById('bankLogoPreview').style.display = 'none';
                 document.getElementById('bankLogoFallback').style.display = 'block';
             }
-
             if(profile.sigBase64) {
                 document.getElementById('sigPreview').src = profile.sigBase64;
                 document.getElementById('sigPreview').style.display = 'block';
@@ -876,6 +978,9 @@
             }
 
             updateTheme(); updateSignatureDisplay(); updateView();
+            
+            // Hide loader after first profile load
+            setTimeout(hideLoader, 500);
         });
 
         onDbChange('customers/' + activeBiz, snap => { customersDB = snap || []; renderDBLists(); });
@@ -978,20 +1083,22 @@
     }
 
     function addNewProfile() {
-        let name = prompt("Enter a name for the new profile:");
-        if (!name || name.trim() === "") return;
-        let newId = "biz_" + new Date().getTime();
-        profileList.push({ id: newId, name: name.trim() });
-        saveDb('global/profileList', profileList).then(() => {
-            document.getElementById('profileSelect').value = newId; loadActiveProfileData(); showAlertModal("Success", `Profile '${name.trim()}' created!`);
+        showPromptModal("New Profile", "Enter a name for the new profile:", function(name) {
+            if (!name || name.trim() === "") return;
+            let newId = "biz_" + new Date().getTime();
+            profileList.push({ id: newId, name: name.trim() });
+            saveDb('global/profileList', profileList).then(() => {
+                document.getElementById('profileSelect').value = newId; loadActiveProfileData(); showAlertModal("Success", `Profile '${name.trim()}' created!`);
+            });
         });
     }
 
     function renameCurrentProfile() {
         let activeId = document.getElementById('profileSelect').value; let profile = profileList.find(p => p.id === activeId);
-        let newName = prompt("Enter new name for this profile:", profile.name);
-        if (!newName || newName.trim() === "") return;
-        profile.name = newName.trim(); saveDb('global/profileList', profileList).then(()=> renderProfileDropdown());
+        showPromptModal("Rename Profile", "Enter new name for this profile:", function(newName) {
+            if (!newName || newName.trim() === "") return;
+            profile.name = newName.trim(); saveDb('global/profileList', profileList).then(()=> renderProfileDropdown());
+        });
     }
 
     function deleteCurrentProfile() {
@@ -1089,20 +1196,6 @@
         return type === 'QUOTATION' ? 'QUO-1001' : 'INV-1001';
     }
 
-    let modalCallback = null;
-    function closeCustomModal() { document.getElementById('customModal').classList.remove('show'); }
-    function showAlertModal(title, msg) {
-        document.getElementById('modalTitle').innerText = title; document.getElementById('modalMessage').innerText = msg;
-        document.getElementById('modalActions').innerHTML = `<button class="modal-btn modal-btn-confirm" onclick="closeCustomModal()">OK</button>`;
-        document.getElementById('customModal').classList.add('show');
-    }
-    function showConfirmModal(title, msg, confirmText, btnClass, callback) {
-        document.getElementById('modalTitle').innerText = title; document.getElementById('modalMessage').innerText = msg; modalCallback = callback;
-        document.getElementById('modalActions').innerHTML = `<button class="modal-btn modal-btn-cancel" onclick="closeCustomModal()">Cancel</button><button class="modal-btn ${btnClass}" onclick="executeModalCallback()">${confirmText}</button>`;
-        document.getElementById('customModal').classList.add('show');
-    }
-    function executeModalCallback() { closeCustomModal(); if(modalCallback) modalCallback(); }
-
     function resetInvoiceForm() {
         document.getElementById('custName').value = ''; document.getElementById('custAddress').value = '';
         document.getElementById('docDate').valueAsDate = new Date(); let nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 14); document.getElementById('validDate').valueAsDate = nextWeek;
@@ -1113,10 +1206,8 @@
         let docNo = document.getElementById('docNo').value.trim();
         if(!docNo) return showAlertModal("Error", "Document Number cannot be empty!");
         if(itemsList.length === 0) return showAlertModal("Error", "Please add at least one item to the document!");
-
         let exists = docHistory.some(h => h.docNo === docNo);
         if (exists && originalDocNo !== docNo) return showAlertModal("Duplicate Number Found", `Document Number ${docNo} already exists in the history!`);
-
         let title = exists ? "Update Document" : "Save Document"; let msg = exists ? "Update this document in the cloud history?" : "Save and print this new document?";
         
         showConfirmModal(title, msg, "Yes", "modal-btn-confirm", function() {
@@ -1272,7 +1363,9 @@
         document.getElementById('subTotal').innerText = 'LKR ' + formatMoney(grossTotal); document.getElementById('discountRow').style.display = totalDiscount > 0 ? 'flex' : 'none'; if (totalDiscount > 0) document.getElementById('totalDiscountAmt').innerText = '- LKR ' + formatMoney(totalDiscount); document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(grossTotal - totalDiscount);
     }
 
+    // ==========================================
     // SECURITY: BLOCK RIGHT-CLICK & DEV TOOLS
+    // ==========================================
     document.addEventListener('contextmenu', event => event.preventDefault());
     document.onkeydown = function(e) {
         if(e.keyCode == 123) { return false; }
