@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Pro Invoice</title>
+    <title>NexaPay - Secure Invoice System</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -15,17 +15,19 @@
 
     <style>
         :root {
-            --primary: #0f172a;       
-            --secondary: #3b82f6;     
-            --text-main: #334155;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --bg-body: #f1f5f9;
+            /* --- අලුත් Color Theme එක --- */
+            --primary: #106291;       
+            --secondary: #0a405e;     
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --bg-body: #f3f4f6;
             --white: #ffffff;
+            --black: #000000;
             --logo-width: 140px;
             --sign-width: 120px;
-            --row-alt-bg: rgba(15, 23, 42, 0.03); 
-            --theme-fade: rgba(15, 23, 42, 0.05);
+            --row-alt-bg: rgba(16, 98, 145, 0.03); 
+            --theme-fade: rgba(16, 98, 145, 0.05);
         }
 
         body { 
@@ -47,41 +49,30 @@
             user-select: auto;
         }
         
-        /* --- MODERN LOGIN SCREEN CSS --- */
+        /* ==========================================
+           MODERN LOGIN SCREEN (NexaPay)
+           ========================================== */
         #loginScreen { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: linear-gradient(-45deg, #0f172a, #1e293b, #3b82f6, #0f172a);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            background: linear-gradient(135deg, var(--black) 0%, #082d45 100%);
             display: flex; align-items: center; justify-content: center; z-index: 9999; 
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* RECOVERY SCREEN CSS */
-        #recoveryScreen { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: linear-gradient(-45deg, #0f172a, #1e293b, #3b82f6, #0f172a);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            display: flex; align-items: center; justify-content: center; z-index: 9999; 
-            display: none; 
         }
 
         .login-box { 
-            background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(10px);
-            padding: 45px 40px; 
+            background: var(--white); 
+            padding: 50px 40px; 
             border-radius: 24px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); 
             width: 100%; max-width: 400px; 
             text-align: center; 
-            border: 1px solid rgba(255,255,255,0.2); 
-            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-box::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+            background: var(--primary);
         }
 
         @keyframes slideUpFade {
@@ -89,193 +80,203 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .login-box h2 { color: var(--primary); margin-top: 0; margin-bottom: 5px; font-weight: 800; font-size: 26px; }
-        .login-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
+        .app-brand { font-weight: 900; font-size: 32px; letter-spacing: -1px; margin-bottom: 5px; color: var(--black); }
+        .app-brand span { color: var(--primary); }
+        .login-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 35px; font-weight: 500; }
         
-        .input-group { position: relative; margin-bottom: 15px; }
-        .input-group i { position: absolute; left: 16px; top: 15px; font-style: normal; font-size: 16px; color: var(--text-muted); }
+        .input-group { position: relative; margin-bottom: 18px; }
+        .input-group i { position: absolute; left: 18px; top: 16px; font-style: normal; font-size: 18px; color: #9ca3af; transition: 0.3s; }
         .input-group input { 
-            width: 100%; padding: 14px 14px 14px 45px !important; margin-bottom: 0 !important;
-            border: 2px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 14px; 
-            box-sizing: border-box; outline: none; transition: 0.3s; background: #f8fafc;
+            width: 100%; padding: 16px 16px 16px 48px !important; margin-bottom: 0 !important;
+            border: 2px solid var(--border); border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 600;
+            box-sizing: border-box; outline: none; transition: 0.3s; background: #f9fafb; color: var(--black);
         }
-        .input-group input:focus { border-color: var(--secondary); background: var(--white); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);}
+        .input-group input:focus { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 4px rgba(16, 98, 145, 0.1);}
+        .input-group input:focus + i, .input-group input:focus ~ i { color: var(--primary); }
 
-        .login-box .btn { margin-top: 10px; border-radius: 12px; padding: 15px; font-size: 15px; letter-spacing: 0.5px;}
-        .login-options { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 25px; margin-top: 5px;}
-        .forgot-link { color: var(--secondary); cursor: pointer; font-weight: 700; transition: 0.2s; }
-        .forgot-link:hover { color: var(--primary); text-decoration: underline; }
+        .login-box .btn { 
+            margin-top: 15px; border-radius: 14px; padding: 16px; font-size: 16px; letter-spacing: 0.5px;
+            background: var(--primary); color: var(--white); font-weight: 700; border: none; cursor: pointer;
+            width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(16, 98, 145, 0.2);
+        }
+        .login-box .btn:hover { 
+            transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(16, 98, 145, 0.4); background: var(--secondary); 
+        }
+        
+        .login-options { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 25px; margin-top: 5px; font-weight: 600;}
+        .forgot-link { color: var(--primary); cursor: pointer; transition: 0.2s; }
+        .forgot-link:hover { color: var(--secondary); text-decoration: underline; }
+        .eye-icon { position: absolute; right: 18px; top: 16px; cursor: pointer; font-size: 18px; color: #9ca3af; transition: 0.2s; z-index: 10;}
+        .eye-icon:hover { color: var(--primary); }
 
-        .eye-icon { position: absolute; right: 15px; top: 14px; cursor: pointer; font-size: 16px; color: var(--text-muted); opacity: 0.7; transition: 0.2s; z-index: 10;}
-        .eye-icon:hover { opacity: 1; }
-
-        /* --- GLOBAL LOADING SCREEN CSS --- */
-        #globalLoader {
+        /* ==========================================
+           NEXAPAY LOADING ANIMATION SCREEN
+           ========================================== */
+        #nexaLoader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1000000; opacity: 0; pointer-events: none; transition: 0.4s;
+            background: var(--black); display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100000; opacity: 0; pointer-events: none; transition: 0.5s ease; color: var(--white);
         }
-        #globalLoader.show { opacity: 1; pointer-events: auto; }
-        .spinner {
-            width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.2);
-            border-top-color: #3b82f6; border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 20px;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .loader-text { color: white; font-weight: 600; font-size: 15px; letter-spacing: 1px; animation: pulseText 1.5s infinite;}
-        @keyframes pulseText { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        #nexaLoader.show { opacity: 1; pointer-events: auto; }
+        
+        .nexa-loader-content { text-align: center; width: 100%; max-width: 300px; padding: 20px;}
+        .nexa-welcome { font-size: 24px; font-weight: 800; margin-bottom: 10px; color: var(--white); }
+        .nexa-welcome span { color: var(--primary); }
+        
+        .progress-container { width: 100%; height: 6px; background: #1f2937; border-radius: 10px; overflow: hidden; margin: 30px 0 15px 0; }
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.1s linear; border-radius: 10px; box-shadow: 0 0 10px var(--primary);}
+        
+        .loader-status { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #9ca3af; letter-spacing: 0.5px;}
 
-        /* CUSTOM DROPDOWN CSS */
+        /* --- REST OF THE SYSTEM CSS --- */
         .dropdown-wrapper { position: relative; width: 100%; }
         .custom-dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 200px; overflow-y: auto; z-index: 100; display: none; margin-top: 4px; }
         .custom-dropdown div { padding: 10px 15px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
         .custom-dropdown div:last-child { border-bottom: none; }
-        .custom-dropdown div:hover { background: #eff6ff; color: var(--secondary); font-weight: 600; }
-        .custom-dropdown strong { display: block; font-size: 14px; margin-bottom: 2px; }
+        .custom-dropdown div:hover { background: #f3f4f6; color: var(--primary); font-weight: 600; }
+        .custom-dropdown strong { display: block; font-size: 14px; margin-bottom: 2px; color: var(--black); }
         .custom-dropdown span { font-size: 11px; color: var(--text-muted); }
 
         .app-container { display: flex; gap: 30px; max-width: 1600px; margin: auto; align-items: flex-start; display: none; }
         
-        .controls { flex: 1.1; background: var(--white); border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); position: sticky; top: 20px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border);}
+        .controls { flex: 1.1; background: var(--white); border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); position: sticky; top: 20px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border);}
         
-        .profile-header { background: #f8fafc; padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 15px;}
-        .profile-header select { flex: 1; padding: 10px; font-weight: 700; border-radius: 8px; border: 2px solid var(--primary); color: var(--primary); font-size: 14px; cursor: pointer;}
-        .btn-save-profile { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s;}
-        .btn-save-profile:hover { opacity: 0.9; }
+        .profile-header { background: var(--black); padding: 15px 25px; display: flex; align-items: center; justify-content: space-between; gap: 15px;}
+        .profile-header select { flex: 1; padding: 12px; font-weight: 700; border-radius: 10px; border: none; background: #1f2937; color: var(--white); font-size: 14px; cursor: pointer; outline: none;}
+        .btn-save-profile { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s;}
+        .btn-save-profile:hover { opacity: 0.9; transform: translateY(-1px);}
 
         .tabs { display: flex; background: var(--white); border-bottom: 1px solid var(--border); flex-wrap: wrap;}
-        .tab-btn { flex: 1; padding: 14px 10px; text-align: center; font-weight: 700; color: var(--text-muted); cursor: pointer; border: none; background: transparent; transition: all 0.2s; font-size: 13px; font-family: inherit; white-space: nowrap;}
-        .tab-btn.active { color: var(--primary); box-shadow: inset 0 -3px 0 var(--primary); }
-        .tab-btn:hover:not(.active) { background: #f1f5f9; }
+        .tab-btn { flex: 1; padding: 15px 10px; text-align: center; font-weight: 700; color: var(--text-muted); cursor: pointer; border: none; background: transparent; transition: all 0.2s; font-size: 13px; font-family: inherit; white-space: nowrap;}
+        .tab-btn.active { color: var(--primary); box-shadow: inset 0 -3px 0 var(--primary); background: rgba(16, 98, 145, 0.02);}
+        .tab-btn:hover:not(.active) { background: #f9fafb; color: var(--black);}
 
-        .tab-content { padding: 25px; overflow-y: auto; flex: 1; display: none; }
+        .tab-content { padding: 30px; overflow-y: auto; flex: 1; display: none; }
         .tab-content.active { display: block; }
-        .tab-content::-webkit-scrollbar { width: 5px; }
-        .tab-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .tab-content::-webkit-scrollbar { width: 6px; }
+        .tab-content::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         
-        .control-group { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9; }
+        .control-group { margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid var(--border); }
         .control-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
-        .control-group h3 { margin-top: 0; color: var(--primary); font-size: 13px; margin-bottom: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
+        .control-group h3 { margin-top: 0; color: var(--black); font-size: 14px; margin-bottom: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
         
-        label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
-        input[type="text"], input[type="number"], input[type="date"], input[type="password"], select, textarea { width: 100%; padding: 10px 14px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 13px; color: var(--text-main); transition: all 0.2s; background: #f8fafc;}
-        input:focus, select:focus, textarea:focus { border-color: var(--secondary); outline: none; background: var(--white); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        textarea { resize: vertical; height: 60px; }
+        label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
+        input[type="text"], input[type="number"], input[type="date"], input[type="password"], select, textarea { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; color: var(--black); transition: all 0.2s; background: #f9fafb; font-weight: 500;}
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; background: var(--white); box-shadow: 0 0 0 3px rgba(16, 98, 145, 0.1); }
+        textarea { resize: vertical; height: 80px; }
         
         .color-row { display: flex; gap: 15px; margin-bottom: 15px; }
         .color-box { flex: 1; }
-        input[type="color"] { width: 100%; height: 40px; border: none; border-radius: 8px; cursor: pointer; padding: 0; background: none;}
+        input[type="color"] { width: 100%; height: 45px; border: none; border-radius: 10px; cursor: pointer; padding: 0; background: none;}
         input[type="range"] { width: 100%; margin-bottom: 15px; cursor: pointer; accent-color: var(--primary); }
         
-        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px solid #bfdbfe;}
-        .checkbox-wrapper input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: var(--secondary); }
-        .checkbox-wrapper label { margin: 0; font-size: 14px; color: var(--primary); cursor: pointer; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; background: #f0f9ff; padding: 15px; border-radius: 10px; border: 1px solid #bae6fd;}
+        .checkbox-wrapper input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: var(--primary); }
+        .checkbox-wrapper label { margin: 0; font-size: 14px; color: var(--primary); cursor: pointer; font-weight: 600;}
 
-        .btn { background: var(--primary); color: var(--white); border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.2s; font-family: inherit;}
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-add { background: var(--white); color: var(--primary); border: 1px solid var(--primary); }
-        .btn-add:hover { background: var(--primary); color: white; }
-        .btn-print { margin: 20px 25px 25px 25px; width: calc(100% - 50px); background: #10b981; }
-        .btn-print:hover { background: #059669; }
+        .btn { background: var(--primary); color: var(--white); border: none; padding: 15px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.2s; font-family: inherit;}
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        .btn-add { background: var(--white); color: var(--black); border: 2px solid var(--border); }
+        .btn-add:hover { background: var(--primary); color: white; border-color: var(--primary);}
+        .btn-print { margin: 20px 30px 30px 30px; width: calc(100% - 60px); background: var(--black); color: white; font-size: 15px;}
+        .btn-print:hover { background: #1f2937; }
 
-        .item-entry-box { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s;}
+        .item-entry-box { background: #f9fafb; padding: 25px; border-radius: 14px; border: 1px solid var(--border); transition: all 0.3s;}
 
-        .preview { flex: 1.5; background: var(--white); border-radius: 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); min-height: 1123px; width: 794px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; overflow: visible;}
-        .top-accent { height: 6px; width: 100%; background: var(--primary); }
-        .preview-content { padding: 35px 40px; flex: 1; display: flex; flex-direction: column; }
+        .preview { flex: 1.5; background: var(--white); border-radius: 0; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1); min-height: 1123px; width: 794px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; overflow: visible;}
+        .top-accent { height: 8px; width: 100%; background: var(--primary); }
+        .preview-content { padding: 40px 45px; flex: 1; display: flex; flex-direction: column; }
 
-        .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; } 
+        .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; } 
         .logo-container img { width: var(--logo-width); max-height: 80px; object-fit: contain; }
         .doc-title-wrapper { text-align: right; }
-        .doc-title { font-size: 32px; color: var(--primary); margin: 0 0 5px 0; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase;}
-        .doc-number { font-size: 15px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 10px;}
-        .doc-dates { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+        .doc-title { font-size: 34px; color: var(--black); margin: 0 0 5px 0; font-weight: 900; letter-spacing: -1px; text-transform: uppercase;}
+        .doc-number { font-size: 16px; color: var(--primary); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 12px;}
+        .doc-dates { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
         .date-line { font-size: 13px; color: var(--text-main); }
         .date-line strong { color: var(--text-muted); font-weight: 600; display: inline-block; width: 85px; text-align: right; margin-right: 10px;}
 
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .info-card { background: var(--theme-fade); padding: 15px 20px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.03); }
-        .info-card h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin: 0 0 6px 0; font-weight: 700; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 6px;}
-        .info-title { font-size: 15px; font-weight: 800; color: var(--primary); margin: 0 0 5px 0; }
-        .info-text { font-size: 13px; color: var(--text-main); line-height: 1.5; white-space: pre-line; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
+        .info-card { background: var(--theme-fade); padding: 20px; border-radius: 14px; border: 1px solid rgba(0,0,0,0.03); }
+        .info-card h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin: 0 0 8px 0; font-weight: 800; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;}
+        .info-title { font-size: 16px; font-weight: 800; color: var(--black); margin: 0 0 6px 0; }
+        .info-text { font-size: 13px; color: var(--text-main); line-height: 1.6; white-space: pre-line; }
 
-        .modern-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        .modern-table th { background: var(--primary); color: var(--white); padding: 10px 12px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .modern-table th:first-child { border-top-left-radius: 6px; border-bottom-left-radius: 6px;}
-        .modern-table th.total-col { border-top-right-radius: 6px; border-bottom-right-radius: 6px; } 
+        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 20px; }
+        .modern-table th { background: var(--black); color: var(--white); padding: 12px 15px; text-align: left; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .modern-table th:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px;}
+        .modern-table th.total-col { border-top-right-radius: 8px; border-bottom-right-radius: 8px; } 
         .modern-table th.action-col { background: transparent; border: none; width: 55px; padding: 0;}
         
-        .modern-table td { padding: 10px 12px; vertical-align: top; border-bottom: 1px solid var(--border); font-size: 13px; background-color: var(--white); }
+        .modern-table td { padding: 12px 15px; vertical-align: top; border-bottom: 1px solid var(--border); font-size: 13px; background-color: var(--white); }
         .modern-table tbody tr:nth-child(even) td { background-color: var(--row-alt-bg); }
         
         .text-right { text-align: right !important; }
         .text-center { text-align: center !important; }
         
-        .item-main { font-weight: 700; display: block; margin-bottom: 3px; color: var(--primary); font-size: 13px;}
+        .item-main { font-weight: 800; display: block; margin-bottom: 4px; color: var(--black); font-size: 14px;}
         .item-sub { font-size: 12px; color: var(--text-muted); white-space: pre-line; display: block;}
-        .warranty-badge { display: inline-block; color: var(--text-muted); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin-top: 4px; border: 1px solid var(--border); background: var(--white);}
+        .warranty-badge { display: inline-block; color: var(--primary); font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 700; margin-top: 6px; border: 1px solid rgba(16,98,145,0.2); background: rgba(16,98,145,0.05);}
 
-        .summary-section { display: flex; justify-content: flex-end; margin-top: 5px; margin-bottom: 15px;}
-        .summary-box { width: 300px; }
-        .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--text-main); padding: 0 16px;}
-        .summary-row.discount-row { color: #ef4444; font-weight: 600; }
+        .summary-section { display: flex; justify-content: flex-end; margin-top: 10px; margin-bottom: 20px;}
+        .summary-box { width: 320px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: var(--text-main); padding: 0 16px; font-weight: 500;}
+        .summary-row.discount-row { color: #ef4444; font-weight: 700; }
         
-        .summary-total { display: flex; justify-content: space-between; margin-top: 10px; padding: 12px 16px; background: #f8fafc; border-left: 4px solid var(--secondary); border-radius: 0 8px 8px 0; font-size: 16px; font-weight: 800; color: var(--primary); }
+        .summary-total { display: flex; justify-content: space-between; margin-top: 15px; padding: 15px 20px; background: var(--primary); color: var(--white); border-radius: 12px; font-size: 18px; font-weight: 900; box-shadow: 0 10px 15px -3px rgba(16, 98, 145, 0.3);}
 
-        .bank-details-box { display: flex; align-items: center; gap: 15px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 15px; margin-bottom: 15px; width: max-content; min-width: 250px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
-        .bank-logo-area { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 6px; border: 1px solid var(--border); overflow: hidden; flex-shrink: 0;}
-        .bank-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 2px;}
-        .bank-logo-area i { font-size: 20px; color: var(--text-muted); font-style: normal;}
+        .bank-details-box { display: flex; align-items: center; gap: 18px; background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 15px 20px; margin-bottom: 20px; width: max-content; min-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .bank-logo-area { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: #f9fafb; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; flex-shrink: 0;}
+        .bank-logo-area img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 3px;}
+        .bank-logo-area i { font-size: 22px; color: var(--text-muted); font-style: normal;}
         .bank-info-area { flex: 1; }
-        .bank-info-area h4 { margin: 0 0 4px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; }
-        .bank-info-line { font-size: 11px; color: var(--text-main); margin-bottom: 2px; display: flex; justify-content: space-between; gap: 15px;}
-        .bank-info-line strong { font-weight: 600; color: var(--primary); text-align: right;}
+        .bank-info-area h4 { margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 800; }
+        .bank-info-line { font-size: 12px; color: var(--text-main); margin-bottom: 3px; display: flex; justify-content: space-between; gap: 20px;}
+        .bank-info-line strong { font-weight: 700; color: var(--black); text-align: right;}
 
-        .bottom-section { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 15px; }
+        .bottom-section { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 20px; }
         .notes-area { flex: 1; padding-right: 40px; }
-        .notes-area h4 { margin: 0 0 6px 0; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;}
-        .notes-area p { margin: 0; font-size: 11px; color: var(--text-main); font-weight: 500; white-space: pre-line; line-height: 1.5;}
+        .notes-area h4 { margin: 0 0 8px 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 800;}
+        .notes-area p { margin: 0; font-size: 12px; color: var(--text-main); font-weight: 500; white-space: pre-line; line-height: 1.6;}
         
-        .signature-area { text-align: center; width: 150px; }
-        .sig-image-container { height: 60px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 5px; }
-        .sig-image-container img { width: var(--sign-width); max-height: 60px; object-fit: contain; }
-        .sig-line { border-top: 1px solid var(--border); padding-top: 6px; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;}
+        .signature-area { text-align: center; width: 160px; }
+        .sig-image-container { height: 70px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 8px; }
+        .sig-image-container img { width: var(--sign-width); max-height: 70px; object-fit: contain; }
+        .sig-line { border-top: 2px solid var(--border); padding-top: 8px; font-size: 11px; font-weight: 800; color: var(--black); text-transform: uppercase; letter-spacing: 0.5px;}
 
-        .electronic-sig-text { text-align: right; max-width: 250px; }
-        .electronic-sig-text p { font-size: 10px; color: var(--text-muted); font-style: italic; margin: 0; line-height: 1.5; }
+        .electronic-sig-text { text-align: right; max-width: 260px; }
+        .electronic-sig-text p { font-size: 11px; color: var(--text-muted); font-style: italic; margin: 0; line-height: 1.6; }
 
-        .del-btn, .edit-btn { background: transparent; border: none; padding: 6px; font-size: 14px; cursor: pointer; transition: 0.2s; opacity: 0;}
+        .del-btn, .edit-btn { background: transparent; border: none; padding: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; opacity: 0;}
         .del-btn { color: #ef4444; }
-        .edit-btn { color: var(--secondary); }
+        .edit-btn { color: var(--primary); }
         tr:hover .del-btn, tr:hover .edit-btn { opacity: 1; }
-        .del-btn:hover, .edit-btn:hover { transform: scale(1.15); }
-        .action-col { width: 55px; padding: 0 !important; vertical-align: middle !important; text-align: center; background: transparent !important; white-space: nowrap;}
+        .del-btn:hover, .edit-btn:hover { transform: scale(1.2); }
+        .action-col { width: 65px; padding: 0 !important; vertical-align: middle !important; text-align: center; background: transparent !important; white-space: nowrap;}
 
-        .db-list-item { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f8fafc; border:1px solid var(--border); margin-bottom:8px; border-radius:8px;}
-        .search-bar { border: 1px solid var(--secondary) !important; background: var(--white) !important; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .db-list-item { display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:#f9fafb; border:1px solid var(--border); margin-bottom:10px; border-radius:10px;}
+        .search-bar { border: 2px solid var(--primary) !important; background: var(--white) !important; font-weight: 600; box-shadow: 0 4px 6px rgba(16, 98, 145, 0.05);}
 
-        .hist-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 12px; transition: all 0.2s; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
-        .hist-card:hover { border-color: var(--secondary); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transform: translateY(-2px); }
-        .hist-info h4 { margin: 0 0 5px 0; color: var(--primary); font-size: 15px; font-weight: 800;}
-        .hist-info p { margin: 0; font-size: 12px; color: var(--text-muted); font-weight: 600;}
+        .hist-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 15px; transition: all 0.2s; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
+        .hist-card:hover { border-color: var(--primary); box-shadow: 0 10px 15px -3px rgba(16, 98, 145, 0.1); transform: translateY(-2px); }
+        .hist-info h4 { margin: 0 0 6px 0; color: var(--black); font-size: 16px; font-weight: 800;}
+        .hist-info p { margin: 0; font-size: 13px; color: var(--text-muted); font-weight: 600;}
         .hist-meta { text-align: right; }
-        .hist-meta .hist-total { font-size: 15px; font-weight: 800; color: var(--primary); margin-bottom: 5px; display: block;}
-        .hist-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; background: #e0f2fe; color: #0284c7;}
+        .hist-meta .hist-total { font-size: 16px; font-weight: 800; color: var(--primary); margin-bottom: 6px; display: block;}
+        .hist-badge { font-size: 10px; padding: 4px 10px; border-radius: 6px; font-weight: 800; text-transform: uppercase; background: #e0f2fe; color: var(--primary);}
         .hist-badge.quo { background: #fef3c7; color: #d97706; }
 
-        /* CUSTOM MODAL CSS */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 100000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(2px);}
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 100000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(4px);}
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
-        .modal-box { background: white; padding: 25px; border-radius: 16px; width: 350px; max-width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: translateY(20px); transition: 0.3s; }
-        .modal-overlay.show .modal-box { transform: translateY(0); }
-        .modal-box h3 { margin-top: 0; color: var(--primary); margin-bottom: 10px; font-size: 18px; font-weight: 800;}
-        .modal-box p { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5; font-weight: 500;}
-        .modal-actions { display: flex; gap: 10px; justify-content: center; }
-        .modal-btn { padding: 12px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; font-size: 13px; flex: 1; transition: 0.2s;}
-        .modal-btn:hover { opacity: 0.9; transform: translateY(-1px);}
-        .modal-btn-cancel { background: #f1f5f9; color: var(--text-main); }
-        .modal-btn-confirm { background: var(--secondary); color: white; }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 350px; max-width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: translateY(20px) scale(0.95); transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-overlay.show .modal-box { transform: translateY(0) scale(1); }
+        .modal-box h3 { margin-top: 0; color: var(--black); margin-bottom: 12px; font-size: 20px; font-weight: 900;}
+        .modal-box p { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.6; font-weight: 500;}
+        .modal-actions { display: flex; gap: 12px; justify-content: center; }
+        .modal-btn { padding: 14px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; font-size: 14px; flex: 1; transition: 0.2s;}
+        .modal-btn:hover { opacity: 0.9; transform: translateY(-2px);}
+        .modal-btn-cancel { background: #f3f4f6; color: var(--text-main); }
+        .modal-btn-confirm { background: var(--primary); color: white; }
         .modal-btn-danger { background: #ef4444; color: white; }
 
         @media screen and (max-width: 850px) {
@@ -284,15 +285,15 @@
             .controls { flex: none; width: 100%; position: relative; max-height: none; overflow: visible; }
             .profile-header { flex-direction: column; align-items: stretch; }
             .tabs { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
-            .tab-btn { flex: 0 0 auto; padding: 12px 20px; }
+            .tab-btn { flex: 0 0 auto; padding: 15px 20px; }
             .control-group > div[style*="display: flex"] { flex-direction: column !important; }
             .control-group > div[style*="display: flex"] > div,
             .control-group > div[style*="display: flex"] > input,
             .control-group > div[style*="display: flex"] > select,
-            .control-group > div[style*="display: flex"] > button { width: 100% !important; margin-bottom: 5px !important; }
+            .control-group > div[style*="display: flex"] > button { width: 100% !important; margin-bottom: 10px !important; }
             .color-row { flex-direction: column; gap: 15px; }
             .btn-print { margin: 15px; width: calc(100% - 30px); }
-            .preview { width: 100%; overflow-x: auto; min-height: auto; border: 1px solid var(--border); border-radius: 12px; }
+            .preview { width: 100%; overflow-x: auto; min-height: auto; border: 1px solid var(--border); border-radius: 16px; }
             .top-accent { min-width: 794px; }
             .preview-content { min-width: 794px; }
             .hist-card { flex-direction: column; align-items: flex-start; gap: 10px; }
@@ -309,7 +310,7 @@
             .preview { box-shadow: none; margin: 0; width: 100%; min-height: auto; padding: 0; border: none; }
             .preview-content { padding: 15mm; min-width: auto; } 
             .del-btn, .edit-btn, .action-col { display: none !important; }
-            .modern-table th.total-col { border-top-right-radius: 6px !important; border-bottom-right-radius: 6px !important;}
+            .modern-table th.total-col { border-top-right-radius: 8px !important; border-bottom-right-radius: 8px !important;}
             .summary-total, .modern-table th, .top-accent, .bank-details-box, .bank-logo-area, .warranty-badge, .modern-table tbody tr:nth-child(even) td, .info-card { 
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important; 
@@ -324,22 +325,32 @@
             .bank-details-box { page-break-inside: avoid; }
             .bottom-section { page-break-inside: avoid; }
             #notesAreaContainer1, #notesAreaContainer2 { page-break-inside: avoid; }
-            .modal-overlay { display: none !important; }
-            #globalLoader { display: none !important; }
+            .modal-overlay, #nexaLoader { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-<div id="globalLoader">
-    <div class="spinner"></div>
-    <div class="loader-text" id="loaderText">Loading Secure System...</div>
+<div id="nexaLoader">
+    <div class="nexa-loader-content">
+        <div class="nexa-welcome" id="nexaLoaderWelcome">Welcome to <span>NexaPay</span></div>
+        <div style="font-size: 14px; color: #9ca3af; font-weight: 500;" id="nexaLoaderSub">Initializing secure environment...</div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="nexaProgressBar"></div>
+        </div>
+        
+        <div class="loader-status">
+            <span id="nexaLoaderText">Connecting...</span>
+            <span id="nexaLoaderPercent">0%</span>
+        </div>
+    </div>
 </div>
 
 <div id="loginScreen">
     <div class="login-box">
-        <h2>🔒 Secure Login</h2>
-        <p class="login-subtitle">Enter your credentials to access the system</p>
+        <div class="app-brand">Nexa<span>Pay</span></div>
+        <p class="login-subtitle">Secure Business Management</p>
         
         <div class="input-group">
             <i>👤</i>
@@ -347,36 +358,35 @@
         </div>
         
         <div class="input-group password-container">
-            <i>🔑</i>
+            <i>🔒</i>
             <input type="password" id="loginPass" placeholder="Password">
             <span class="eye-icon" onclick="togglePassword('loginPass')">👁️</span>
         </div>
         
         <div class="login-options">
-            <label style="display:flex; align-items:center; gap:5px; margin:0; cursor:pointer; color: var(--text-main);">
-                <input type="checkbox" id="rememberMe" style="width:16px; height:16px; margin:0; accent-color:var(--secondary);"> Remember me
+            <label style="display:flex; align-items:center; gap:6px; margin:0; cursor:pointer; color: var(--text-main);">
+                <input type="checkbox" id="rememberMe" style="width:16px; height:16px; margin:0; accent-color:var(--primary);"> Remember me
             </label>
             <span class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</span>
         </div>
         
-        <button class="btn" onclick="attemptLogin()">Login Securely</button>
+        <button class="btn" onclick="attemptLogin()">Sign In to Dashboard</button>
     </div>
 </div>
 
 <div id="recoveryScreen">
     <div class="login-box">
-        <h2>🔑 Set New Password</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-top: -15px; margin-bottom: 20px;">
-            Please enter your new password below.
-        </p>
+        <div class="app-brand">Nexa<span>Pay</span></div>
+        <h2 style="font-size: 20px;">🔑 Set New Password</h2>
+        <p class="login-subtitle" style="margin-bottom: 25px;">Please enter your new secure password.</p>
         
         <div class="input-group password-container">
-            <i>🔑</i>
+            <i>🔒</i>
             <input type="password" id="recoveryNewPass" placeholder="New Password">
             <span class="eye-icon" onclick="togglePassword('recoveryNewPass')">👁️</span>
         </div>
         
-        <button class="btn" onclick="completePasswordRecovery()">Save New Password</button>
+        <button class="btn" onclick="completePasswordRecovery()">Save & Sign In</button>
     </div>
 </div>
 
@@ -399,14 +409,14 @@
         <div id="editorTab" class="tab-content active">
             <div class="control-group">
                 <h3>Document Details</h3>
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 15px;">
                     <select id="docType" onchange="handleDocTypeChange()" style="flex: 1;">
                         <option value="INVOICE">Invoice</option>
                         <option value="QUOTATION">Quotation</option>
                     </select>
                     <input type="text" id="docNo" oninput="updateView()" style="flex: 1.5;">
                 </div>
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 15px;">
                     <div style="flex: 1;"><label>Date:</label><input type="date" id="docDate" oninput="handleDocDateChange()"></div>
                     <div style="flex: 1;" id="validDateControl"><label>Valid Until:</label><input type="date" id="validDate" oninput="updateView()"></div>
                 </div>
@@ -418,12 +428,12 @@
                     <input type="text" id="custName" autocomplete="off" placeholder="Search or Type Customer Name" oninput="filterCustDropdown(); updateView()" onfocus="filterCustDropdown()">
                     <div id="custCustomDropdown" class="custom-dropdown"></div>
                 </div>
-                <textarea id="custAddress" placeholder="Customer Address & Contact..." oninput="updateView()"></textarea>
+                <textarea id="custAddress" placeholder="Customer Address & Contact Info..." oninput="updateView()"></textarea>
             </div>
 
             <div class="control-group item-entry-box" id="itemInputBox">
                 <h3 style="color: var(--primary);" id="itemEntryTitle">Add Item</h3>
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                     <div class="dropdown-wrapper" style="flex: 2;">
                         <input type="text" id="itemName" autocomplete="off" placeholder="Search or Type Item Name" style="margin-bottom: 0;" oninput="filterItemDropdown()" onfocus="filterItemDropdown()">
                         <div id="itemCustomDropdown" class="custom-dropdown"></div>
@@ -439,9 +449,9 @@
                         <option value="custom">Custom...</option>
                     </select>
                 </div>
-                <input type="text" id="itemWarrantyCustom" placeholder="Type custom warranty here..." style="display: none; margin-bottom: 10px;">
+                <input type="text" id="itemWarrantyCustom" placeholder="Type custom warranty details here..." style="display: none; margin-bottom: 15px;">
                 <textarea id="itemDesc" placeholder="Description / Serial No..."></textarea>
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 15px;">
                     <div style="flex: 1.5;"><label>Price (LKR)</label><input type="number" id="itemPrice" placeholder="0.00"></div>
                     <div style="flex: 1.5;"><label>Unit Discount</label><input type="number" id="itemDiscount" placeholder="0.00"></div>
                     <div style="flex: 1;"><label>Qty</label><input type="number" id="itemQty" value="1"></div>
@@ -453,8 +463,8 @@
                 <h3>Extra Information</h3>
                 <label>Note Section 1 - Heading:</label>
                 <input type="text" id="note1Heading" placeholder="e.g. Notes" oninput="updateView()">
-                <textarea id="notes" placeholder="Payment terms, Bank Details..." oninput="updateView()"></textarea>
-                <div style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;">
+                <textarea id="notes" placeholder="Payment terms, Delivery info..." oninput="updateView()"></textarea>
+                <div style="margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 20px;">
                     <label>Note Section 2 - Heading (Optional):</label>
                     <input type="text" id="note2Heading" placeholder="e.g. Terms & Conditions" oninput="updateView()">
                     <textarea id="note2Text" placeholder="Add extra notes or terms here. Leave blank to hide." oninput="updateView()"></textarea>
@@ -466,11 +476,11 @@
             <div class="control-group" style="border: none;">
                 <h3>Saved Documents History</h3>
                 <input type="text" id="histSearch" class="search-bar" placeholder="🔍 Search by Customer Name or Doc No..." oninput="renderHistory()">
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 15px; margin-bottom: 25px;">
                     <div style="flex: 1;"><label>From Date</label><input type="date" id="histFrom" onchange="renderHistory()"></div>
                     <div style="flex: 1;"><label>To Date</label><input type="date" id="histTo" onchange="renderHistory()"></div>
                     <div style="flex: 0.4; display:flex; align-items:flex-end;">
-                        <button class="btn btn-add" style="padding: 10px; margin-bottom: 15px;" onclick="clearHistFilters()">Clear</button>
+                        <button class="btn btn-add" style="padding: 12px; margin-bottom: 15px; border-radius: 10px;" onclick="clearHistFilters()">Clear</button>
                     </div>
                 </div>
                 <div id="historyListContainer" style="max-height: 500px; overflow-y: auto; padding-right: 5px;"></div>
@@ -481,10 +491,10 @@
             <div class="control-group">
                 <h3>Export Database Data</h3>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-add" style="flex: 1; padding: 10px;" onclick="exportToPDF('customers')">📄 PDF (Customers)</button>
-                    <button class="btn btn-add" style="flex: 1; padding: 10px;" onclick="exportToPDF('items')">📄 PDF (Items)</button>
-                    <button class="btn btn-add" style="flex: 1; padding: 10px;" onclick="exportToCSV()">📊 Excel / CSV</button>
-                    <button class="btn btn-add" style="flex: 1; padding: 10px;" onclick="exportToJSON()">📥 JSON (Backup)</button>
+                    <button class="btn btn-add" style="flex: 1; padding: 12px;" onclick="exportToPDF('customers')">📄 PDF (Customers)</button>
+                    <button class="btn btn-add" style="flex: 1; padding: 12px;" onclick="exportToPDF('items')">📄 PDF (Items)</button>
+                    <button class="btn btn-add" style="flex: 1; padding: 12px;" onclick="exportToCSV()">📊 Excel / CSV</button>
+                    <button class="btn btn-add" style="flex: 1; padding: 12px;" onclick="exportToJSON()">📥 JSON (Backup)</button>
                 </div>
             </div>
             
@@ -494,7 +504,7 @@
                 <input type="text" id="dbCustName" placeholder="Customer Name">
                 <textarea id="dbCustAddress" placeholder="Customer Address & Contact Info"></textarea>
                 <button class="btn btn-add" onclick="saveCustomerDB()">+ Save Customer</button>
-                <div id="customerDBList" style="margin-top: 15px; max-height: 250px; overflow-y: auto;"></div>
+                <div id="customerDBList" style="margin-top: 20px; max-height: 250px; overflow-y: auto;"></div>
             </div>
             <div class="control-group" style="border:none;">
                 <h3>Item Database</h3>
@@ -503,7 +513,7 @@
                 <textarea id="dbItemDesc" placeholder="Default Description"></textarea>
                 <input type="number" id="dbItemPrice" placeholder="Default Price (LKR)">
                 <button class="btn btn-add" onclick="saveItemDB()">+ Save Item</button>
-                <div id="itemDBList" style="margin-top: 15px; max-height: 250px; overflow-y: auto;"></div>
+                <div id="itemDBList" style="margin-top: 20px; max-height: 250px; overflow-y: auto;"></div>
             </div>
         </div>
 
@@ -515,7 +525,7 @@
                 </div>
                 <div id="bankInputs">
                     <label>Bank Logo Image (Square PNG/JPG):</label>
-                    <input type="file" id="bankLogoInput" accept="image/*" onchange="loadBankLogo(event)" style="padding: 10px; background:#fff;">
+                    <input type="file" id="bankLogoInput" accept="image/*" onchange="loadBankLogo(event)" style="padding: 12px; background:#fff;">
                     <label>Bank Name:</label>
                     <input type="text" id="bankName" placeholder="e.g. Commercial Bank" oninput="updateView()">
                     <label>Account Name:</label>
@@ -547,10 +557,10 @@
             
             <div class="control-group">
                 <h3>Profile Management</h3>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-add" style="padding: 10px;" onclick="addNewProfile()">➕ Add New Profile</button>
-                    <button class="btn btn-add" style="padding: 10px;" onclick="renameCurrentProfile()">✏️ Rename Active</button>
-                    <button class="btn" style="padding: 10px; background: #ef4444; border: none; flex: 0.5;" onclick="deleteCurrentProfile()">🗑️ Delete</button>
+                <div style="display: flex; gap: 15px;">
+                    <button class="btn btn-add" style="padding: 12px;" onclick="addNewProfile()">➕ Add New Profile</button>
+                    <button class="btn btn-add" style="padding: 12px;" onclick="renameCurrentProfile()">✏️ Rename Active</button>
+                    <button class="btn" style="padding: 12px; background: #ef4444; border: none; flex: 0.5;" onclick="deleteCurrentProfile()">🗑️ Delete</button>
                 </div>
             </div>
             <div class="control-group">
@@ -567,7 +577,7 @@
             </div>
             <div class="control-group">
                 <h3>Company Logo</h3>
-                <input type="file" id="logoInput" accept="image/*" onchange="loadLogo(event)" style="padding: 10px; background:#fff;">
+                <input type="file" id="logoInput" accept="image/*" onchange="loadLogo(event)" style="padding: 12px; background:#fff;">
                 <label>Logo Size:</label>
                 <input type="range" id="logoSize" min="50" max="300" value="140" oninput="updateTheme()">
             </div>
@@ -579,7 +589,7 @@
                 </select>
                 <div id="sigUploadControls" style="margin-top: 15px;">
                     <label>Upload Image (PNG):</label>
-                    <input type="file" id="sigInput" accept="image/*" onchange="loadSignature(event)" style="padding: 10px; background:#fff;">
+                    <input type="file" id="sigInput" accept="image/*" onchange="loadSignature(event)" style="padding: 12px; background:#fff;">
                     <label>Signature Size:</label>
                     <input type="range" id="sigSize" min="50" max="250" value="120" oninput="updateTheme()">
                 </div>
@@ -595,7 +605,7 @@
             <div class="header-section">
                 <div class="logo-container">
                     <img id="logoPreview" src="" style="display:none;" alt="Logo">
-                    <h2 id="logoTextFallback" style="margin:0; color:var(--primary); font-size: 28px; font-weight:800; letter-spacing:-1px;">Business Name</h2>
+                    <h2 id="logoTextFallback" style="margin:0; color:var(--primary); font-size: 28px; font-weight:900; letter-spacing:-1px;">Business Name</h2>
                 </div>
                 <div class="doc-title-wrapper">
                     <h1 class="doc-title" id="displayDocType">INVOICE</h1>
@@ -687,7 +697,7 @@
         <h3 id="promptTitle">Title</h3>
         <p id="promptMessage">Message goes here</p>
         <div class="password-container">
-            <input type="password" id="promptInput" style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; margin-bottom: 20px; outline: none; text-align: center; font-size: 16px; font-weight: bold; letter-spacing: 2px;">
+            <input type="text" id="promptInput" style="width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 12px; margin-bottom: 20px; outline: none; text-align: center; font-size: 16px; font-weight: bold; background: #f9fafb; color: var(--black);">
         </div>
         <div class="modal-actions" id="promptActions"></div>
     </div>
@@ -710,16 +720,8 @@
     }
 
     // ==========================================
-    // 2. LOADING SCREEN & MODALS LOGIC
+    // 2. MODALS LOGIC
     // ==========================================
-    function showLoader(text) {
-        document.getElementById('loaderText').innerText = text;
-        document.getElementById('globalLoader').classList.add('show');
-    }
-    function hideLoader() {
-        document.getElementById('globalLoader').classList.remove('show');
-    }
-
     let modalCallback = null;
     let promptCallback = null;
 
@@ -741,13 +743,14 @@
         document.getElementById('customModal').classList.add('show');
     }
 
-    function showPromptModal(title, msg, callback) {
+    function showPromptModal(title, msg, callback, isPassword = true) {
         document.getElementById('promptTitle').innerText = title;
         document.getElementById('promptMessage').innerText = msg;
         let inp = document.getElementById('promptInput');
+        inp.type = isPassword ? "password" : "text";
         inp.value = '';
         promptCallback = callback;
-        document.getElementById('promptActions').innerHTML = `<button class="modal-btn modal-btn-cancel" onclick="closePromptModal()">Cancel</button><button class="modal-btn modal-btn-confirm" onclick="executePromptCallback()">Verify</button>`;
+        document.getElementById('promptActions').innerHTML = `<button class="modal-btn modal-btn-cancel" onclick="closePromptModal()">Cancel</button><button class="modal-btn modal-btn-confirm" onclick="executePromptCallback()">Proceed</button>`;
         document.getElementById('customPromptModal').classList.add('show');
         setTimeout(() => inp.focus(), 100);
     }
@@ -765,7 +768,55 @@
     }
 
     // ==========================================
-    // 3. APP VARIABLES
+    // 3. NEXAPAY LOGIN ANIMATION
+    // ==========================================
+    function runNexaPayLoader(callback) {
+        let loader = document.getElementById('nexaLoader');
+        let textEl = document.getElementById('nexaLoaderText');
+        let percentEl = document.getElementById('nexaLoaderPercent');
+        let barEl = document.getElementById('nexaProgressBar');
+        
+        let lastUser = localStorage.getItem('nexapay_last_user') || 'Admin';
+        document.getElementById('nexaLoaderWelcome').innerHTML = `Welcome back, <span>${lastUser}</span>`;
+        
+        loader.classList.add('show');
+        
+        const steps = [
+            { p: 15, t: "Verifying credentials..." },
+            { p: 40, t: "Connecting to secure server..." },
+            { p: 70, t: "Loading database..." },
+            { p: 90, t: "Installing updates..." },
+            { p: 100, t: "Starting NexaPay..." }
+        ];
+
+        let currentStep = 0;
+        let duration = 3000; // 3 seconds total
+        let intervalTime = duration / 100;
+        let percent = 0;
+
+        let intId = setInterval(() => {
+            percent++;
+            barEl.style.width = percent + '%';
+            percentEl.innerText = percent + '%';
+
+            if(currentStep < steps.length && percent >= steps[currentStep].p) {
+                textEl.innerText = steps[currentStep].t;
+                currentStep++;
+            }
+
+            if(percent >= 100) {
+                clearInterval(intId);
+                setTimeout(() => {
+                    loader.classList.remove('show');
+                    callback();
+                }, 300);
+            }
+        }, intervalTime);
+    }
+
+
+    // ==========================================
+    // 4. APP VARIABLES
     // ==========================================
     let dbCache = {};
     let itemsList = [];
@@ -784,7 +835,7 @@
     const defaultProfileList = [{ id: "biz1", name: "🏢 Default Business" }];
 
     // ==========================================
-    // 4. AUTHENTICATION & LOGIN LOGIC
+    // 5. AUTHENTICATION LOGIC
     // ==========================================
     async function setupAuthButtons() {
         if(!supabaseClient) {
@@ -795,18 +846,18 @@
         const { data: { session } } = await supabaseClient.auth.getSession();
         
         if (session) {
-            showApp();
-        } else {
-            // Background fetch just to have credentials ready for the old login flow simulation
-            supabaseClient.from('json_store').select('data').eq('id', 'admin/credentials').single()
-            .then((res) => {
-                if(res.data && res.data.data) systemAuth = res.data.data;
+            runNexaPayLoader(() => {
+                showApp();
             });
+        } else {
+            supabaseClient.from('json_store').select('data').eq('id', 'admin/credentials').single()
+            .then((res) => { if(res.data && res.data.data) systemAuth = res.data.data; });
         }
         
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT') {
                 document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('recoveryScreen').style.display = 'none';
                 document.getElementById('loginScreen').style.display = 'flex';
             } 
             else if (event === 'PASSWORD_RECOVERY') {
@@ -824,14 +875,7 @@
         
         if (!email || !pass) return showAlertModal("Error", "Please enter your Email and Password");
 
-        showLoader("Authenticating...");
-
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: pass,
-        });
-
-        hideLoader(); // HIDE LOADER INSTANTLY
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: pass });
 
         if (error) {
             showAlertModal("Login Failed", "Incorrect Email or Password.");
@@ -839,40 +883,41 @@
             if (remember) localStorage.setItem('invoice_logged_in', 'true');
             document.getElementById('loginUser').value = '';
             document.getElementById('loginPass').value = '';
-            showApp(); // SHOW APP INSTANTLY
+            
+            runNexaPayLoader(() => {
+                showApp();
+            });
         }
     }
 
     async function logout() {
-        showLoader("Logging out...");
         localStorage.removeItem('invoice_logged_in');
         await supabaseClient.auth.signOut();
-        hideLoader();
     }
 
-    // In-App Custom Prompt for Forget Password
+    // Custom In-App Prompt for Password Recovery Request
     function handleForgotPassword() {
-        showPromptModal("Password Recovery", "Please enter the Security Recovery PIN:", function(pin) {
-            if(pin === "200411501558") {
-                showAlertModal("Recovery Successful", `Username: ${systemAuth.user}\nPassword: ${systemAuth.pass}`);
-            } else if (pin) {
-                showAlertModal("Access Denied", "Incorrect Security PIN!");
+        showPromptModal("Password Recovery", "Enter the email address you registered with:", async function(email) {
+            if (!email || email.trim() === "") return;
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.href });
+            if (error) {
+                showAlertModal("Error", error.message);
+            } else {
+                showAlertModal("Email Sent!", "A secure password reset link has been sent to your email.");
             }
-        });
+        }, false); // false means text input instead of password
     }
 
     async function completePasswordRecovery() {
         let newPass = document.getElementById('recoveryNewPass').value.trim();
         if (!newPass) return showAlertModal("Error", "Please enter a new password.");
 
-        showLoader("Updating Password...");
         const { error } = await supabaseClient.auth.updateUser({ password: newPass });
-        hideLoader();
-
+        
         if (error) {
             showAlertModal("Error", error.message);
         } else {
-            showAlertModal("Success!", "Your password has been successfully reset.");
+            showAlertModal("Success!", "Your password has been reset.");
             document.getElementById('recoveryNewPass').value = '';
             document.getElementById('recoveryScreen').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
@@ -883,41 +928,28 @@
     async function updateCredentials() {
         let oldP = document.getElementById('oldPassword').value.trim();
         let newP = document.getElementById('newPassword').value.trim();
-        
         if (!oldP || !newP) return showAlertModal("Error", "Please enter both Current and New passwords.");
-
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return showAlertModal("Error", "You are not logged in.");
+        const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email: user.email, password: oldP });
 
-        const { error: signInError } = await supabaseClient.auth.signInWithPassword({
-            email: user.email,
-            password: oldP
-        });
-
-        if (signInError) {
-            return showAlertModal("Error", "Current password is incorrect! You cannot make changes.");
-        }
+        if (signInError) return showAlertModal("Error", "Current password is incorrect! Changes denied.");
 
         showConfirmModal("Confirm Change", "Are you sure you want to update the password?", "Update", "modal-btn-confirm", async function() {
-            showLoader("Updating Password...");
             const { error: updateError } = await supabaseClient.auth.updateUser({ password: newP });
-            hideLoader();
-            
             if (updateError) {
                 showAlertModal("Error", updateError.message);
             } else {
                 document.getElementById('oldPassword').value = '';
                 document.getElementById('newPassword').value = '';
-                // Also update local fallback
-                systemAuth.pass = newP;
-                saveDb('admin/credentials', systemAuth);
+                systemAuth.pass = newP; saveDb('admin/credentials', systemAuth);
                 showAlertModal("Success", "Password updated successfully.");
             }
         });
     }
 
     // ==========================================
-    // SUPABASE DB WRAPPER
+    // SUPABASE DB WRAPPER 
     // ==========================================
     supabaseClient.channel('any_change')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'json_store' }, payload => {
@@ -930,12 +962,7 @@
     async function onDbChange(id, callback) {
       dbListeners[id] = callback;
       const { data, error } = await supabaseClient.from('json_store').select('data').eq('id', id).single();
-      if (error) {
-          callback(null); 
-      } else {
-          dbCache[id] = data ? data.data : null;
-          callback(dbCache[id]);
-      }
+      if (error) { callback(null); } else { dbCache[id] = data ? data.data : null; callback(dbCache[id]); }
     }
 
     async function saveDb(id, data) {
@@ -952,8 +979,6 @@
         document.getElementById('recoveryScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         
-        hideLoader(); // Kill loader instantly so user sees UI
-
         onDbChange('global/profileList', (data) => {
             let currentSelection = document.getElementById('profileSelect').value;
             profileList = data ? data : defaultProfileList;
@@ -988,11 +1013,15 @@
         originalDocNo = null; 
 
         onDbChange('profiles/' + activeBiz, (snap) => {
-            let profile = snap || { compName: "New Business", primaryColor: "#0f172a", secondaryColor: "#3b82f6", logoSize: 140, sigSize: 120, sigType: "electronic" };
+            let profile = snap || { compName: "New Business", primaryColor: "#106291", secondaryColor: "#0a405e", logoSize: 140, sigSize: 120, sigType: "electronic" };
+            
+            // Save last used profile name for login animation
+            localStorage.setItem('nexapay_last_user', profile.compName);
+
             document.getElementById('compName').value = profile.compName || '';
             document.getElementById('compAddress').value = profile.compAddress || '';
-            document.getElementById('primaryColor').value = profile.primaryColor || '#0f172a';
-            document.getElementById('secondaryColor').value = profile.secondaryColor || '#3b82f6';
+            document.getElementById('primaryColor').value = profile.primaryColor || '#106291';
+            document.getElementById('secondaryColor').value = profile.secondaryColor || '#0a405e';
             document.getElementById('logoSize').value = profile.logoSize || 140;
             document.getElementById('sigSize').value = profile.sigSize || 120;
             document.getElementById('sigType').value = profile.sigType || 'upload';
@@ -1013,6 +1042,7 @@
                 document.getElementById('logoPreview').style.display = 'none';
                 document.getElementById('logoTextFallback').style.display = 'block';
             }
+
             if(profile.bankLogoBase64) {
                 document.getElementById('bankLogoPreview').src = profile.bankLogoBase64;
                 document.getElementById('bankLogoPreview').style.display = 'block';
@@ -1021,6 +1051,7 @@
                 document.getElementById('bankLogoPreview').style.display = 'none';
                 document.getElementById('bankLogoFallback').style.display = 'block';
             }
+
             if(profile.sigBase64) {
                 document.getElementById('sigPreview').src = profile.sigBase64;
                 document.getElementById('sigPreview').style.display = 'block';
@@ -1096,13 +1127,13 @@
         customersDB.forEach(c => { csvContent += `"${c.name}","${c.address.replace(/\n/g, ' ')}"\n`; });
         csvContent += "\n--- ITEMS ---\nItem Name,Description,Price\n";
         productsDB.forEach(p => { let desc = p.desc ? p.desc.replace(/\n/g, ' ') : ''; csvContent += `"${p.name}","${desc}",${p.price}\n`; });
-        let link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "System_Database_Export.csv");
+        let link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "NexaPay_Database_Export.csv");
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
     function exportToJSON() {
         let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ customers: customersDB, items: productsDB }, null, 2));
-        let link = document.createElement("a"); link.setAttribute("href", dataStr); link.setAttribute("download", "System_Backup.json");
+        let link = document.createElement("a"); link.setAttribute("href", dataStr); link.setAttribute("download", "NexaPay_Backup.json");
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
@@ -1138,7 +1169,7 @@
             saveDb('global/profileList', profileList).then(() => {
                 document.getElementById('profileSelect').value = newId; loadActiveProfileData(); showAlertModal("Success", `Profile '${name.trim()}' created!`);
             });
-        });
+        }, false);
     }
 
     function renameCurrentProfile() {
@@ -1146,7 +1177,7 @@
         showPromptModal("Rename Profile", "Enter new name for this profile:", function(newName) {
             if (!newName || newName.trim() === "") return;
             profile.name = newName.trim(); saveDb('global/profileList', profileList).then(()=> renderProfileDropdown());
-        });
+        }, false);
     }
 
     function deleteCurrentProfile() {
@@ -1306,7 +1337,7 @@
         let custUIHTML = '';
         customersDB.forEach((c, index) => {
             if (c.name.toLowerCase().includes(custSearchTerm) || c.address.toLowerCase().includes(custSearchTerm)) {
-                custUIHTML += `<div class="db-list-item"><div><strong style="color:var(--primary);">${c.name}</strong><br><span style="color:var(--text-muted);">${c.address}</span></div><div><button class="edit-btn" style="opacity:1;" onclick="editCustomerDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteCustomerDB(${index})">✖</button></div></div>`;
+                custUIHTML += `<div class="db-list-item"><div><strong style="color:var(--black);">${c.name}</strong><br><span style="color:var(--text-muted);">${c.address}</span></div><div><button class="edit-btn" style="opacity:1;" onclick="editCustomerDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteCustomerDB(${index})">✖</button></div></div>`;
             }
         });
         document.getElementById('customerDBList').innerHTML = custUIHTML;
@@ -1314,7 +1345,7 @@
         let prodUIHTML = '';
         productsDB.forEach((p, index) => {
             if (p.name.toLowerCase().includes(itemSearchTerm) || (p.desc && p.desc.toLowerCase().includes(itemSearchTerm))) {
-                prodUIHTML += `<div class="db-list-item"><div><strong style="color:var(--primary);">${p.name}</strong><br><span style="color:var(--secondary); font-weight:700;">LKR ${formatMoney(p.price)}</span></div><div><button class="edit-btn" style="opacity:1;" onclick="editItemDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteItemDB(${index})">✖</button></div></div>`;
+                prodUIHTML += `<div class="db-list-item"><div><strong style="color:var(--black);">${p.name}</strong><br><span style="color:var(--primary); font-weight:700;">LKR ${formatMoney(p.price)}</span></div><div><button class="edit-btn" style="opacity:1;" onclick="editItemDB(${index})">✏️</button><button class="del-btn" style="opacity:1;" onclick="deleteItemDB(${index})">✖</button></div></div>`;
             }
         });
         document.getElementById('itemDBList').innerHTML = prodUIHTML;
@@ -1322,12 +1353,12 @@
 
     function editCustomerDB(index) {
         let cust = customersDB[index]; document.getElementById('dbCustName').value = cust.name; document.getElementById('dbCustAddress').value = cust.address; editingDbCustIndex = index;
-        let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
+        let btn = document.querySelector('#dbTab .control-group:nth-child(2) .btn-add'); btn.innerHTML = "✓ Update Customer"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)";
     }
 
     function editItemDB(index) {
         let item = productsDB[index]; document.getElementById('dbItemName').value = item.name; document.getElementById('dbItemDesc').value = item.desc; document.getElementById('dbItemPrice').value = item.price; editingDbItemIndex = index;
-        let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
+        let btn = document.querySelector('#dbTab .control-group:nth-child(3) .btn-add'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)";
     }
 
     function switchTab(tabId, btn) {
@@ -1380,13 +1411,13 @@
         let item = itemsList[index]; document.getElementById('itemName').value = item.name; document.getElementById('itemDesc').value = item.desc; document.getElementById('itemPrice').value = item.price; document.getElementById('itemDiscount').value = item.discount || ''; document.getElementById('itemQty').value = item.qty;
         let wSelect = document.getElementById('itemWarrantySelect'); let wCustom = document.getElementById('itemWarrantyCustom'); let predefined = ["1 Year Warranty", "2 Years Warranty", "3 Years Warranty", "6 Months Warranty", "3 Months Warranty"];
         if (!item.warranty || item.warranty === "") { wSelect.value = "none"; wCustom.style.display = "none"; } else if (predefined.includes(item.warranty)) { wSelect.value = item.warranty; wCustom.style.display = "none"; } else { wSelect.value = "custom"; wCustom.style.display = "block"; wCustom.value = item.warranty; }
-        editingIndex = index; let btn = document.getElementById('itemActionBtn'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--secondary)"; btn.style.color = "var(--white)";
-        document.getElementById('itemEntryTitle').innerText = "Edit Item"; document.getElementById('itemInputBox').style.borderColor = "var(--secondary)"; document.getElementById('itemInputBox').style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)"; switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
+        editingIndex = index; let btn = document.getElementById('itemActionBtn'); btn.innerHTML = "✓ Update Item"; btn.style.background = "var(--primary)"; btn.style.color = "var(--white)";
+        document.getElementById('itemEntryTitle').innerText = "Edit Item"; document.getElementById('itemInputBox').style.borderColor = "var(--primary)"; document.getElementById('itemInputBox').style.boxShadow = "0 0 0 3px rgba(16, 98, 145, 0.1)"; switchTab('editorTab', document.querySelectorAll('.tab-btn')[0]);
     }
 
     function resetItemForm() {
         document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = ''; document.getElementById('itemPrice').value = ''; document.getElementById('itemDiscount').value = ''; document.getElementById('itemQty').value = '1'; editingIndex = -1;
-        let btn = document.getElementById('itemActionBtn'); btn.innerHTML = "+ Add to List"; btn.style.background = "var(--white)"; btn.style.color = "var(--primary)"; document.getElementById('itemEntryTitle').innerText = "Add Item"; document.getElementById('itemInputBox').style.borderColor = "var(--border)"; document.getElementById('itemInputBox').style.boxShadow = "none";
+        let btn = document.getElementById('itemActionBtn'); btn.innerHTML = "+ Add to List"; btn.style.background = "var(--white)"; btn.style.color = "var(--black)"; document.getElementById('itemEntryTitle').innerText = "Add Item"; document.getElementById('itemInputBox').style.borderColor = "var(--border)"; document.getElementById('itemInputBox').style.boxShadow = "none";
     }
 
     function handleItemAction() {
@@ -1406,7 +1437,7 @@
         let tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; let grossTotal = 0, totalDiscount = 0;
         itemsList.forEach((item, index) => {
             let itemGross = item.price * item.qty, itemDiscTotal = item.discount * item.qty, itemNet = itemGross - itemDiscTotal; grossTotal += itemGross; totalDiscount += itemDiscTotal;
-            tbody.innerHTML += `<tr><td><span class="item-main">${item.name}</span>${item.desc ? `<span class="item-sub">${item.desc}</span>` : ''}${item.warranty ? `<div class="warranty-badge">${item.warranty}</div>` : ''}</td><td class="text-center">${item.qty}</td><td class="text-right">${formatMoney(item.price)}</td>${hasDiscount ? `<td class="text-right">${item.discount > 0 ? formatMoney(item.discount) : '-'}</td>` : ''}<td class="text-right" style="font-weight:600; color:var(--text-main);">${formatMoney(itemNet)}</td><td class="action-col"><button class="edit-btn" onclick="editItem(${index})">✏️</button><button class="del-btn" onclick="deleteItem(${index})">✖</button></td></tr>`;
+            tbody.innerHTML += `<tr><td><span class="item-main">${item.name}</span>${item.desc ? `<span class="item-sub">${item.desc}</span>` : ''}${item.warranty ? `<div class="warranty-badge">${item.warranty}</div>` : ''}</td><td class="text-center">${item.qty}</td><td class="text-right">${formatMoney(item.price)}</td>${hasDiscount ? `<td class="text-right">${item.discount > 0 ? formatMoney(item.discount) : '-'}</td>` : ''}<td class="text-right" style="font-weight:800; color:var(--black);">${formatMoney(itemNet)}</td><td class="action-col"><button class="edit-btn" onclick="editItem(${index})">✏️</button><button class="del-btn" onclick="deleteItem(${index})">✖</button></td></tr>`;
         });
         document.getElementById('subTotal').innerText = 'LKR ' + formatMoney(grossTotal); document.getElementById('discountRow').style.display = totalDiscount > 0 ? 'flex' : 'none'; if (totalDiscount > 0) document.getElementById('totalDiscountAmt').innerText = '- LKR ' + formatMoney(totalDiscount); document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(grossTotal - totalDiscount);
     }
