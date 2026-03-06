@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
 
@@ -48,7 +47,10 @@
             user-select: auto;
         }
         
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        /* LOGIN & RECOVERY SCREEN CSS */
+        #loginScreen, #recoveryScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        #recoveryScreen { display: none; } /* Hidden by default */
+
         .login-box { background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border); }
         .login-box h2 { color: var(--primary); margin-top: 0; margin-bottom: 25px; font-weight: 800; font-size: 24px; }
         .login-box input[type="text"], .login-box input[type="email"], .login-box input[type="password"] { width: 100%; padding: 14px; margin-bottom: 15px; border: 2px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.3s; }
@@ -116,18 +118,14 @@
         .item-entry-box { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s;}
 
         .preview { flex: 1.5; background: var(--white); border-radius: 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); min-height: 1123px; width: 794px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; overflow: visible;}
-        
         .top-accent { height: 6px; width: 100%; background: var(--primary); }
-        
         .preview-content { padding: 35px 40px; flex: 1; display: flex; flex-direction: column; }
 
         .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; } 
         .logo-container img { width: var(--logo-width); max-height: 80px; object-fit: contain; }
-        
         .doc-title-wrapper { text-align: right; }
         .doc-title { font-size: 32px; color: var(--primary); margin: 0 0 5px 0; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase;}
         .doc-number { font-size: 15px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 10px;}
-        
         .doc-dates { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
         .date-line { font-size: 13px; color: var(--text-main); }
         .date-line strong { color: var(--text-muted); font-weight: 600; display: inline-block; width: 85px; text-align: right; margin-right: 10px;}
@@ -143,7 +141,6 @@
         .modern-table th:first-child { border-top-left-radius: 6px; border-bottom-left-radius: 6px;}
         .modern-table th.total-col { border-top-right-radius: 6px; border-bottom-right-radius: 6px; } 
         .modern-table th.action-col { background: transparent; border: none; width: 55px; padding: 0;}
-        
         .modern-table td { padding: 10px 12px; vertical-align: top; border-bottom: 1px solid var(--border); font-size: 13px; background-color: var(--white); }
         .modern-table tbody tr:nth-child(even) td { background-color: var(--row-alt-bg); }
         
@@ -285,6 +282,22 @@
         </div>
         
         <button class="btn" onclick="attemptLogin()">Login Securely</button>
+    </div>
+</div>
+
+<div id="recoveryScreen">
+    <div class="login-box">
+        <h2>🔑 Set New Password</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: -15px; margin-bottom: 20px;">
+            Please enter your new password below.
+        </p>
+        
+        <div class="password-container">
+            <input type="password" id="recoveryNewPass" placeholder="New Password">
+            <span class="eye-icon" onclick="togglePassword('recoveryNewPass')">👁️</span>
+        </div>
+        
+        <button class="btn" onclick="completePasswordRecovery()">Save New Password</button>
     </div>
 </div>
 
@@ -600,7 +613,7 @@
     let supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // ==========================================
-    // 2. REAL AUTHENTICATION & SECURITY LOGIC
+    // 2. REAL AUTHENTICATION & PASSWORD RECOVERY
     // ==========================================
     
     function togglePassword(inputId) {
@@ -610,16 +623,25 @@
 
     async function setupAuthButtons() {
         const { data: { session } } = await supabaseClient.auth.getSession();
+        
         if (session) {
             showApp();
         } else {
             document.getElementById('loginScreen').style.display = 'flex';
         }
         
+        // Listen for Auth Events (including clicking the reset link from the email)
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT') {
                 document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('recoveryScreen').style.display = 'none';
                 document.getElementById('loginScreen').style.display = 'flex';
+            } 
+            else if (event === 'PASSWORD_RECOVERY') {
+                // When user clicks the link in their email, they come back here
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('recoveryScreen').style.display = 'flex';
             }
         });
     }
@@ -648,6 +670,45 @@
         await supabaseClient.auth.signOut();
     }
 
+    // --- SEND EMAIL RESET LINK ---
+    async function handleForgotPassword() {
+        let email = prompt("Please enter the email address you registered with:");
+        if (!email || email.trim() === "") return;
+
+        const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email.trim(), {
+            // This tells Supabase where to send the user back to after clicking the link
+            redirectTo: window.location.href 
+        });
+
+        if (error) {
+            showAlertModal("Error", error.message);
+        } else {
+            showAlertModal("Email Sent!", "A secure password reset link has been sent to your email. Please check your inbox (and spam folder).");
+        }
+    }
+
+    // --- SAVE NEW PASSWORD FROM RECOVERY SCREEN ---
+    async function completePasswordRecovery() {
+        let newPass = document.getElementById('recoveryNewPass').value.trim();
+        
+        if (!newPass) return showAlertModal("Error", "Please enter a new password.");
+
+        const { error } = await supabaseClient.auth.updateUser({ password: newPass });
+        
+        if (error) {
+            showAlertModal("Error", error.message);
+        } else {
+            showAlertModal("Success!", "Your password has been successfully reset. You can now login with your new password.");
+            document.getElementById('recoveryNewPass').value = '';
+            // Go back to login screen
+            document.getElementById('recoveryScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            // Log them out to force a clean login with the new password
+            await supabaseClient.auth.signOut();
+        }
+    }
+
+    // --- UPDATE PASSWORD FROM INSIDE SETTINGS TAB ---
     async function updateCredentials() {
         let oldP = document.getElementById('oldPassword').value.trim();
         let newP = document.getElementById('newPassword').value.trim();
@@ -676,19 +737,6 @@
                 showAlertModal("Success", "Password updated successfully.");
             }
         });
-    }
-
-    function handleForgotPassword() {
-        let subject = encodeURIComponent("Invoice System - Password Recovery");
-        let body = encodeURIComponent("I need help recovering my invoice system password.");
-        window.location.href = `mailto:ashendulanja075@gmail.com?subject=${subject}&body=${body}`;
-        
-        let pin = prompt("Enter Recovery PIN:");
-        if(pin === "200411501558") {
-            showAlertModal("Recovery Notice", "Passwords are encrypted and hidden in Supabase for bank-level security.\n\nPlease reset your password directly from your Supabase Dashboard -> Authentication.");
-        } else if (pin !== null && pin !== "") {
-            showAlertModal("Error", "Incorrect PIN!");
-        }
     }
 
     // ==========================================
@@ -744,6 +792,7 @@
     // ==========================================
     function showApp() {
         document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('recoveryScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         
         onDbChange('global/profileList', (data) => {
@@ -767,7 +816,6 @@
         let activeBiz = document.getElementById('profileSelect').value;
         if (!activeBiz) return; 
 
-        // FIX: Clear memory immediately to prevent data mixing between profiles
         customersDB = [];
         productsDB = [];
         docHistory = [];
@@ -1224,9 +1272,7 @@
         document.getElementById('subTotal').innerText = 'LKR ' + formatMoney(grossTotal); document.getElementById('discountRow').style.display = totalDiscount > 0 ? 'flex' : 'none'; if (totalDiscount > 0) document.getElementById('totalDiscountAmt').innerText = '- LKR ' + formatMoney(totalDiscount); document.getElementById('grandTotal').innerText = 'LKR ' + formatMoney(grossTotal - totalDiscount);
     }
 
-    // ==========================================
     // SECURITY: BLOCK RIGHT-CLICK & DEV TOOLS
-    // ==========================================
     document.addEventListener('contextmenu', event => event.preventDefault());
     document.onkeydown = function(e) {
         if(e.keyCode == 123) { return false; }
